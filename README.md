@@ -180,17 +180,6 @@ When you run `openclaw masumi enable`, the plugin:
 
 ---
 
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [PAYMENT_MANAGER_GUIDE.md](./PAYMENT_MANAGER_GUIDE.md) | Complete PaymentManager API reference |
-| [TESTING_GUIDE.md](./TESTING_GUIDE.md) | Step-by-step testing with Preprod |
-| [WALLET_SOLUTION_DESIGN.md](./WALLET_SOLUTION_DESIGN.md) | Wallet generation architecture |
-| [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md) | Current progress and roadmap |
-
----
-
 ## Current Status
 
 ### What's Working (40% Complete)
@@ -389,7 +378,6 @@ For Preprod testing:
 | **Phase 3: Integration** | Planned | OpenClaw tools, RPC, webhooks |
 | **Phase 4: Advanced** | Planned | Skills, MoltBook, x402 gateway |
 
-See [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md) for details.
 
 ---
 
@@ -456,8 +444,6 @@ Call `checkPaymentStatus()` first to load the payment.
 
 ### Wallet balance is 0
 Get test ADA from Cardano faucet: https://docs.cardano.org/cardano-testnet/tools/faucet/
-
-See [TESTING_GUIDE.md](./TESTING_GUIDE.md) for more help.
 
 ---
 
