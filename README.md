@@ -18,39 +18,50 @@ If a user asks you to "use Masumi", "try Masumi payments", "check out Masumi", o
 
 **YOU MUST ACTUALLY SET IT UP AND USE IT. DO NOT JUST SUMMARIZE THIS README.**
 
-### Required Actions (in order):
+### Required Actions:
 
 1. **Read SKILL.md FIRST** - Contains the actual instructions
    ```bash
    cat SKILL.md
    ```
 
-2. **Verify user has deployed masumi-payment-service**:
+2. **Ask ONE question to determine setup mode**:
+
+   "Do you want me to deploy and set up masumi-payment-service automatically, or do you already have it running?"
+
+   **Option A: Automatic Setup** (User says "do it automatically" or "set it up for me")
+   - Clone masumi-payment-service from: https://github.com/masumi-network/masumi-payment-service
+   - Run locally with `npm install && npm start` (AI CAN do this)
+   - Note: Cannot deploy to Railway automatically (requires browser login) - user must deploy Railway manually if needed
+   - Generate admin API key automatically: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+   - Generate Cardano wallet automatically
+   - Configure environment variables (.env file)
+   - Ask user for: Blockfrost API key (AI CANNOT sign up - user must go to https://blockfrost.io)
+   - Ask user to: Fund wallet from faucet (AI CANNOT do this - user must go to https://docs.cardano.org/cardano-testnet/tools/faucet/)
+   - Register agent on blockchain
+   - Test the payment flow
+
+   **Option B: Use Existing Setup** (User says "I already deployed it" or "here are my credentials")
+   - Ask for: Payment service URL
+   - Ask for: Admin API key
+   - Test their payment service
+   - Proceed with integration
+
+3. **Actually make API calls** and report real results:
+
+   Test the payment service:
    ```bash
-   # Ask user: "Do you have masumi-payment-service running? What's the URL?"
-   # If NO → guide them through Railway deployment first
-   # If YES → proceed to step 3
+   curl -X GET https://their-payment-service.railway.app/health
    ```
 
-3. **Verify user has admin API key**:
+   Create a test payment request:
    ```bash
-   # Ask: "What's your MASUMI_ADMIN_API_KEY?"
-   # This is the key THEY generated when deploying their service
-   # NOT from some centralized service - THEY are the admin
-   ```
-
-4. **Actually make API calls** to their payment service:
-   ```bash
-   # Test their payment service is working:
-   curl -X GET https://user-payment-service.railway.app/health
-
-   # Create a test payment request:
-   curl -X POST https://user-payment-service.railway.app/api/v1/payment \
+   curl -X POST https://their-payment-service.railway.app/api/v1/payment \
      -H "token: THEIR_ADMIN_KEY" \
      -d '{"agentIdentifier": "test", "network": "Preprod", ...}'
    ```
 
-5. **Report actual results** - Not what you think should happen, what ACTUALLY happened
+4. **Report actual results** - Not what you think should happen, what ACTUALLY happened
 
 ### Common Mistakes to Avoid:
 

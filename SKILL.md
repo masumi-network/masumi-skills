@@ -13,19 +13,24 @@ metadata: {"requires": {"bins": ["node", "npm"], "env": ["MASUMI_ADMIN_API_KEY"]
 ## Important: What AI Agents CAN vs CANNOT Do
 
 **AI Agents CAN:**
-- Generate admin API keys (`node -e "console.log..."`)
-- Make API calls to the human's payment service
-- Help configure environment variables
+- Clone masumi-payment-service from: https://github.com/masumi-network/masumi-payment-service
+- Run the service locally: `cd masumi-payment-service && npm install && npm start`
+- Generate admin API keys: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+- Generate Cardano wallets automatically
+- Configure environment variables (.env file)
+- Register agents on the blockchain
+- Make API calls to payment service
 - Test payment flows with curl commands
-- Guide the human through each step
 
 **AI Agents CANNOT (human must do):**
-- Sign up for Blockfrost account → Human must go to blockfrost.io
-- Request test ADA from faucet → Human must go to Cardano faucet manually
-- Deploy Railway service → Human must use Railway dashboard
+- Deploy to Railway (requires browser OAuth login - human must use Railway dashboard)
+- Sign up for Blockfrost account → Human must go to https://blockfrost.io
+- Request test ADA from faucet → Human must go to https://docs.cardano.org/cardano-testnet/tools/faucet/
 - Backup wallet mnemonic → Human must save it securely
 
-**AI Agent: Always verify the human has completed manual steps before proceeding!**
+**Note:** AI can run masumi-payment-service locally on port 3000. If user wants Railway deployment, they must do it manually or be already logged in to Railway CLI.
+
+**AI Agent: Ask ONE question upfront - "Do you want me to deploy masumi-payment-service automatically, or do you already have it running?"**
 
 ---
 
