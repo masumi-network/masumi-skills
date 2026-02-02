@@ -26,8 +26,7 @@
       },
       "paymentServiceUrl": {
         "type": "string",
-        "default": "https://payment.masumi.network/api/v1",
-        "description": "Masumi Payment Service URL"
+        "description": "YOUR self-hosted Masumi Payment Service URL. You run this yourself - there is NO centralized service. Examples: http://localhost:3000/api/v1 (local) or https://your-service.railway.app/api/v1 (Railway)"
       },
       "registryServiceUrl": {
         "type": "string",

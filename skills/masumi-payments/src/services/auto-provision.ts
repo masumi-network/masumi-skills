@@ -4,7 +4,7 @@ import {
   ProvisionedAgent,
   MasumiPluginConfig,
   PricingTier,
-} from '../types/config';
+} from '../../../shared/types/config';
 
 /**
  * Agent identity for auto-provisioning
@@ -53,8 +53,19 @@ export class AutoProvisionService {
 
   constructor(config: MasumiPluginConfig) {
     this.config = config;
+    
+    // Use user's own service URL (no centralized default)
+    const serviceUrl = config.registryServiceUrl || config.paymentServiceUrl;
+    if (!serviceUrl) {
+      throw new Error(
+        'Payment service URL is required. ' +
+        'You must provide YOUR self-hosted payment service URL via MASUMI_PAYMENT_SERVICE_URL. ' +
+        'Examples: http://localhost:3000/api/v1 (local) or https://your-service.railway.app/api/v1 (Railway).'
+      );
+    }
+    
     this.registryClient = new ApiClient({
-      baseUrl: config.registryServiceUrl || config.paymentServiceUrl,
+      baseUrl: serviceUrl,
       apiKey: config.registryApiKey || config.paymentApiKey,
     });
   }

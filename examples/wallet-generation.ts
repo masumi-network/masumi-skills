@@ -130,9 +130,11 @@ async function example7_autoProvision() {
 
   const { AutoProvisionService } = await import('../src/services/auto-provision');
 
+  // IMPORTANT: You run your OWN payment service. There is NO centralized service.
+  // Use YOUR service URL: http://localhost:3000/api/v1 (local) or https://your-service.railway.app/api/v1
   const config = {
     network: 'Preprod' as Network,
-    paymentServiceUrl: 'https://payment.masumi.network/api/v1',
+    paymentServiceUrl: process.env.MASUMI_PAYMENT_SERVICE_URL || 'http://localhost:3000/api/v1', // YOUR self-hosted service
     autoProvision: true,
     agentName: 'MyTestAgent',
     pricingTier: 'basic' as const,

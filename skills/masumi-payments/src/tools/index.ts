@@ -8,21 +8,166 @@
 import { PaymentManager } from '../managers/payment';
 import { RegistryManager } from '../managers/registry';
 import { AutoProvisionService } from '../services/auto-provision';
-import { MasumiPluginConfigSchema } from '../types/config';
-import type { Network } from '../types/config';
+import {
+  installPaymentService,
+  checkPaymentServiceStatus,
+  startPaymentService,
+  generateApiKey,
+} from '../services/payment-service-installer';
+import { MasumiPluginConfigSchema } from '../../../shared/types/config';
+import type { Network } from '../../../shared/types/config';
 
 /**
  * Load configuration from environment variables
+ * 
+ * IMPORTANT: User must provide THEIR OWN payment service URL.
+ * There is NO centralized service - each user runs their own node.
  */
 function loadConfig() {
+  const paymentServiceUrl = process.env.MASUMI_PAYMENT_SERVICE_URL;
+  
+  if (!paymentServiceUrl) {
+    throw new Error(
+      'MASUMI_PAYMENT_SERVICE_URL is required. ' +
+      'You must provide YOUR self-hosted payment service URL. ' +
+      'Examples: http://localhost:3000/api/v1 (local) or https://your-service.railway.app/api/v1 (Railway). ' +
+      'There is NO centralized payment.masumi.network service - you run your own node.'
+    );
+  }
+
   // Use Zod schema to apply defaults
   return MasumiPluginConfigSchema.parse({
     network: (process.env.MASUMI_NETWORK || 'Preprod') as Network,
-    paymentServiceUrl: process.env.MASUMI_PAYMENT_SERVICE_URL,
-    paymentApiKey: process.env.MASUMI_PAYMENT_API_KEY,
+    paymentServiceUrl, // Required - user's own service
+    paymentApiKey: process.env.MASUMI_PAYMENT_API_KEY, // User's own admin API key
     sellerVkey: process.env.MASUMI_SELLER_VKEY,
     agentIdentifier: process.env.MASUMI_AGENT_IDENTIFIER,
   });
+}
+
+/**
+ * Tool: masumi_install_payment_service
+ *
+ * Install masumi-payment-service locally
+ * Clones the repository and installs dependencies
+ *
+ * @param params - Installation options
+ * @returns Installation result
+ */
+export async function masumi_install_payment_service(params: {
+  installPath?: string;
+  network?: Network;
+} = {}) {
+  try {
+    const result = await installPaymentService({
+      installPath: params.installPath,
+      network: params.network || 'Preprod',
+    });
+
+    return {
+      success: true,
+      serviceUrl: result.serviceUrl,
+      installPath: result.installPath,
+      network: result.network,
+      status: result.status,
+      message:
+        result.status === 'already_exists'
+          ? 'Payment service already installed'
+          : 'Payment service installed successfully',
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+      message: 'Failed to install payment service',
+    };
+  }
+}
+
+/**
+ * Tool: masumi_start_payment_service
+ *
+ * Start the payment service and check if it's running
+ *
+ * @param params - Service options
+ * @returns Service status
+ */
+export async function masumi_start_payment_service(params: {
+  installPath?: string;
+  serviceUrl?: string;
+  network?: Network;
+} = {}) {
+  try {
+    const serviceUrl = params.serviceUrl || 'http://localhost:3000/api/v1';
+    const network = params.network || 'Preprod';
+
+    // Check if already running
+    let status = await checkPaymentServiceStatus(serviceUrl);
+    if (status.running) {
+      return {
+        success: true,
+        running: true,
+        serviceUrl: status.url,
+        healthCheck: status.healthCheck,
+        message: 'Payment service is already running',
+      };
+    }
+
+    // Try to start if install path provided
+    if (params.installPath) {
+      status = await startPaymentService(params.installPath, network);
+    }
+
+    return {
+      success: true,
+      running: status.running,
+      serviceUrl: status.url,
+      healthCheck: status.healthCheck,
+      message: status.running
+        ? 'Payment service is running'
+        : 'Payment service is not running. Start it manually or provide installPath.',
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+      message: 'Failed to start payment service',
+    };
+  }
+}
+
+/**
+ * Tool: masumi_generate_api_key
+ *
+ * Generate an API key via payment service
+ *
+ * @param params - API key generation options
+ * @returns Generated API key
+ */
+export async function masumi_generate_api_key(params: {
+  serviceUrl?: string;
+  adminKey?: string;
+} = {}) {
+  try {
+    const serviceUrl =
+      params.serviceUrl || process.env.MASUMI_PAYMENT_SERVICE_URL || 'http://localhost:3000/api/v1';
+    const adminKey = params.adminKey || process.env.MASUMI_ADMIN_KEY;
+
+    const apiKey = await generateApiKey(serviceUrl, adminKey);
+
+    return {
+      success: true,
+      apiKey,
+      serviceUrl,
+      message: 'API key generated successfully. Save this securely!',
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+      message: 'Failed to generate API key',
+    };
+  }
 }
 
 /**
@@ -30,6 +175,7 @@ function loadConfig() {
  *
  * Enable Masumi payments for this agent
  * Auto-provisions wallet and registers on Masumi network
+ * Optionally installs payment service if not already configured
  *
  * @param params - Optional configuration parameters
  * @returns Provision status with agent identifier and wallet address
@@ -38,8 +184,44 @@ export async function masumi_enable(params: {
   agentName?: string;
   description?: string;
   pricingTier?: 'free' | 'basic' | 'premium';
+  installService?: boolean;
 } = {}) {
   try {
+    // Check if payment service URL is configured
+    const paymentServiceUrl = process.env.MASUMI_PAYMENT_SERVICE_URL;
+
+    if (!paymentServiceUrl && params.installService) {
+      // Install payment service first
+      const installResult = await masumi_install_payment_service({
+        network: (process.env.MASUMI_NETWORK || 'Preprod') as Network,
+      });
+
+      if (!installResult.success) {
+        return {
+          success: false,
+          error: 'service_installation_failed',
+          message: installResult.message,
+        };
+      }
+
+      // Start service
+      await masumi_start_payment_service({
+        installPath: installResult.installPath,
+        serviceUrl: installResult.serviceUrl,
+      });
+
+      // Generate API key
+      const apiKeyResult = await masumi_generate_api_key({
+        serviceUrl: installResult.serviceUrl,
+      });
+
+      if (apiKeyResult.success) {
+        // Set environment variable for this session
+        process.env.MASUMI_PAYMENT_SERVICE_URL = installResult.serviceUrl;
+        process.env.MASUMI_PAYMENT_API_KEY = apiKeyResult.apiKey;
+      }
+    }
+
     const config = loadConfig();
 
     const service = new AutoProvisionService({
@@ -398,7 +580,7 @@ export async function masumi_get_agent(params: { agentIdentifier: string }) {
 }
 
 /**
- * Export all tools
+ * Export all masumi tools
  */
 export const MasumiTools = {
   masumi_enable,

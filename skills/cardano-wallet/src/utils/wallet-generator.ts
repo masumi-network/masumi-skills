@@ -1,5 +1,5 @@
 import { MeshWallet, resolvePaymentKeyHash } from '@meshsdk/core';
-import { Network } from '../types/config';
+import { Network } from '../../../shared/types/config';
 
 /**
  * Generated wallet credentials

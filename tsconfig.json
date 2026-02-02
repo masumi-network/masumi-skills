@@ -20,6 +20,6 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "skills/**/*", "shared/**/*"],
   "exclude": ["node_modules", "dist", "tests", "**/*.test.ts"]
 }

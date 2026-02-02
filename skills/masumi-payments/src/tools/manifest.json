@@ -1,6 +1,85 @@
 {
   "tools": [
     {
+      "name": "masumi_install_payment_service",
+      "description": "Install masumi-payment-service locally. Clones the repository and installs dependencies.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "installPath": {
+            "type": "string",
+            "description": "Path to install service (default: ~/.masumi/payment-service)"
+          },
+          "network": {
+            "type": "string",
+            "enum": ["Preprod", "Mainnet"],
+            "default": "Preprod",
+            "description": "Cardano network"
+          }
+        }
+      },
+      "returns": {
+        "success": "boolean",
+        "serviceUrl": "string",
+        "installPath": "string",
+        "network": "string",
+        "status": "string",
+        "message": "string"
+      }
+    },
+    {
+      "name": "masumi_start_payment_service",
+      "description": "Start the payment service and check if it's running",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "installPath": {
+            "type": "string",
+            "description": "Path where service is installed"
+          },
+          "serviceUrl": {
+            "type": "string",
+            "description": "Service URL to check (default: http://localhost:3000/api/v1)"
+          },
+          "network": {
+            "type": "string",
+            "enum": ["Preprod", "Mainnet"],
+            "default": "Preprod"
+          }
+        }
+      },
+      "returns": {
+        "success": "boolean",
+        "running": "boolean",
+        "serviceUrl": "string",
+        "healthCheck": "object",
+        "message": "string"
+      }
+    },
+    {
+      "name": "masumi_generate_api_key",
+      "description": "Generate an API key via payment service API",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "serviceUrl": {
+            "type": "string",
+            "description": "Payment service URL (default: http://localhost:3000/api/v1)"
+          },
+          "adminKey": {
+            "type": "string",
+            "description": "Admin key from payment service config (optional)"
+          }
+        }
+      },
+      "returns": {
+        "success": "boolean",
+        "apiKey": "string",
+        "serviceUrl": "string",
+        "message": "string"
+      }
+    },
+    {
       "name": "masumi_enable",
       "description": "Enable Masumi payments for this AI agent. Auto-provisions a Cardano wallet and registers the agent on Masumi network.",
       "parameters": {
@@ -19,6 +98,11 @@
             "enum": ["free", "basic", "premium"],
             "default": "free",
             "description": "Pricing tier: free (no charge), basic (1 ADA), premium (5 ADA)"
+          },
+          "installService": {
+            "type": "boolean",
+            "default": false,
+            "description": "Automatically install payment service if not configured"
           }
         }
       },

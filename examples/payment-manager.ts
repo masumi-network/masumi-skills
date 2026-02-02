@@ -13,10 +13,12 @@ import { PaymentManager } from '../src/managers/payment';
 import { MasumiPluginConfig } from '../src/types/config';
 
 // Example configuration
+// IMPORTANT: You run your OWN payment service. There is NO centralized service.
+// Use YOUR service URL: http://localhost:3000/api/v1 (local) or https://your-service.railway.app/api/v1
 const config: MasumiPluginConfig = {
   network: 'Preprod',
-  paymentServiceUrl: 'https://payment.masumi.network/api/v1',
-  paymentApiKey: process.env.MASUMI_PAYMENT_API_KEY || 'your_api_key_here',
+  paymentServiceUrl: process.env.MASUMI_PAYMENT_SERVICE_URL || 'http://localhost:3000/api/v1', // YOUR self-hosted service
+  paymentApiKey: process.env.MASUMI_PAYMENT_API_KEY || 'your_api_key_here', // YOUR admin API key
   sellerVkey: process.env.MASUMI_SELLER_VKEY || 'your_vkey_here',
   agentIdentifier: process.env.MASUMI_AGENT_IDENTIFIER || 'agent_example_123',
 };

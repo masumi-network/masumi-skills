@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { ApiClient } from '../utils/api-client';
-import type { Network } from '../types/config';
+import type { Network } from '../../../shared/types/config';
 
 /**
  * Agent capability definition
@@ -152,8 +152,17 @@ export class RegistryManager extends EventEmitter {
   constructor(config: RegistryManagerConfig) {
     super();
 
-    // Set default registry service URL if not provided
-    const registryServiceUrl = config.registryServiceUrl || 'https://payment.masumi.network/api/v1';
+    // Set default registry service URL if not provided (use payment service URL)
+    // NO centralized default - user must provide their own service URL
+    const registryServiceUrl = config.registryServiceUrl || config.paymentServiceUrl;
+    
+    if (!registryServiceUrl) {
+      throw new Error(
+        'Registry service URL not configured. ' +
+        'You must provide MASUMI_PAYMENT_SERVICE_URL (your self-hosted payment service URL). ' +
+        'Example: http://localhost:3000/api/v1 or https://your-service.railway.app/api/v1'
+      );
+    }
 
     this.config = {
       ...config,
@@ -200,9 +209,52 @@ export class RegistryManager extends EventEmitter {
    */
   async registerAgent(params: RegisterAgentParams): Promise<RegisteredAgent> {
     try {
-      const response = await this.client.post<{ data: RegisteredAgent }>('/registry', params);
+      // API returns: { status: string, data: RegistryEntry }
+      const response = await this.client.post<{
+        status: string;
+        data: {
+          agentIdentifier: string | null;
+          name: string;
+          description: string | null;
+          apiBaseUrl: string;
+          Capability: { name: string | null; version: string | null };
+          Author: {
+            name: string;
+            contactEmail: string | null;
+            contactOther: string | null;
+            organization: string | null;
+          };
+          state: string;
+          Tags: string[];
+          [key: string]: unknown;
+        };
+      }>('/registry', params);
 
-      const agent = response.data;
+      const registryEntry = response.data;
+      
+      // Map RegistryEntry to RegisteredAgent format
+      const agent: RegisteredAgent = {
+        agentIdentifier: registryEntry.agentIdentifier || '',
+        state: registryEntry.state as RegisteredAgent['state'],
+        network: params.network,
+        name: registryEntry.name,
+        description: registryEntry.description || '',
+        apiBaseUrl: registryEntry.apiBaseUrl,
+        Capability: {
+          name: registryEntry.Capability.name || '',
+          version: registryEntry.Capability.version || '',
+        },
+        Author: {
+          name: registryEntry.Author.name,
+          contactEmail: registryEntry.Author.contactEmail || undefined,
+          website: registryEntry.Author.contactOther || undefined,
+        },
+        Pricing: {
+          pricingType: params.Pricing.pricingType === 'Free' ? 'Free' : 'Fixed',
+          amounts: params.Pricing.pricingType === 'Fixed' ? params.Pricing.amounts || [] : undefined,
+        },
+        tags: params.tags,
+      };
 
       // Store in local cache
       this.registeredAgents.set(agent.agentIdentifier, agent);
@@ -232,12 +284,66 @@ export class RegistryManager extends EventEmitter {
    */
   async getAgent(agentIdentifier: string, network: Network): Promise<RegisteredAgent> {
     try {
-      const response = await this.client.get<{ data: RegisteredAgent }>(
-        `/registry/${agentIdentifier}`,
-        { network }
+      // The API doesn't have GET /registry/{agentIdentifier}
+      // Instead, we need to search and filter by agentIdentifier
+      // Or use GET /registry/wallet if we have the walletVkey
+      // For now, we'll search and find the matching agent
+      const response = await this.client.get<{
+        status: string;
+        data: {
+          Assets: Array<{
+            agentIdentifier: string | null;
+            name: string;
+            description: string | null;
+            apiBaseUrl: string;
+            Capability: { name: string | null; version: string | null };
+            Author: {
+              name: string;
+              contactEmail: string | null;
+              contactOther: string | null;
+              organization: string | null;
+            };
+            state: string;
+            Tags: string[];
+            [key: string]: unknown;
+          }>;
+        };
+      }>('/registry', {
+        network,
+      });
+
+      // Find the agent by identifier
+      const registryEntry = response.data?.Assets?.find(
+        (asset) => asset.agentIdentifier === agentIdentifier
       );
 
-      const agent = response.data;
+      if (!registryEntry) {
+        throw new Error(`Agent not found: ${agentIdentifier}`);
+      }
+
+      // Map RegistryEntry to RegisteredAgent format
+      const agent: RegisteredAgent = {
+        agentIdentifier: registryEntry.agentIdentifier!,
+        state: registryEntry.state as RegisteredAgent['state'],
+        network,
+        name: registryEntry.name,
+        description: registryEntry.description || '',
+        apiBaseUrl: registryEntry.apiBaseUrl,
+        Capability: {
+          name: registryEntry.Capability.name || '',
+          version: registryEntry.Capability.version || '',
+        },
+        Author: {
+          name: registryEntry.Author.name,
+          contactEmail: registryEntry.Author.contactEmail || undefined,
+          website: registryEntry.Author.contactOther || undefined,
+        },
+        Pricing: {
+          pricingType: 'Fixed', // Default, actual pricing comes from registry metadata
+          amounts: [],
+        },
+        tags: registryEntry.Tags,
+      };
 
       // Update local cache
       this.registeredAgents.set(agent.agentIdentifier, agent);
@@ -282,12 +388,56 @@ export class RegistryManager extends EventEmitter {
       if (options.offset) queryParams.offset = options.offset.toString();
       if (options.tags) queryParams.tags = options.tags.join(',');
 
-      const response = await this.client.get<{ data: RegisteredAgent[] }>(
-        '/registry',
-        queryParams
-      );
+      // API returns: { status: string, data: { Assets: RegistryEntry[] } }
+      const response = await this.client.get<{
+        status: string;
+        data: {
+          Assets: Array<{
+            agentIdentifier: string | null;
+            name: string;
+            description: string | null;
+            apiBaseUrl: string;
+            Capability: { name: string | null; version: string | null };
+            Author: {
+              name: string;
+              contactEmail: string | null;
+              contactOther: string | null;
+              organization: string | null;
+            };
+            state: string;
+            Tags: string[];
+            AgentPricing: {
+              pricingType: 'Fixed' | 'Free';
+              Pricing?: Array<{ amount: string; unit: string }>;
+            };
+            [key: string]: unknown;
+          }>;
+        };
+      }>('/registry', queryParams);
 
-      return response.data;
+      // Map RegistryEntry[] to RegisteredAgent[]
+      return (response.data?.Assets || []).map((entry) => ({
+        agentIdentifier: entry.agentIdentifier || '',
+        state: entry.state as RegisteredAgent['state'],
+        network: options.network || 'Preprod',
+        name: entry.name,
+        description: entry.description || '',
+        apiBaseUrl: entry.apiBaseUrl,
+        Capability: {
+          name: entry.Capability.name || '',
+          version: entry.Capability.version || '',
+        },
+        Author: {
+          name: entry.Author.name,
+          contactEmail: entry.Author.contactEmail || undefined,
+          website: entry.Author.contactOther || undefined,
+        },
+        Pricing: {
+          pricingType: entry.AgentPricing.pricingType === 'Free' ? 'Free' : 'Fixed',
+          amounts: entry.AgentPricing.Pricing || [],
+        },
+        tags: entry.Tags,
+      }));
     } catch (error) {
       this.emit('registry:error', error as Error);
       throw error;
@@ -315,61 +465,27 @@ export class RegistryManager extends EventEmitter {
   /**
    * Update agent metadata
    *
+   * NOTE: The Masumi API does not support PATCH /registry/{id} endpoint.
+   * To update an agent, you must re-register it with updated metadata.
+   * This method will throw an error to indicate that updates are not supported.
+   *
    * @param params - Update parameters
    * @returns Updated agent details
    *
    * @example
    * ```typescript
-   * const updatedAgent = await registry.updateAgent({
-   *   agentIdentifier: 'agent_abc123xyz',
-   *   network: 'Preprod',
-   *   description: 'Updated description',
-   *   Pricing: {
-   *     pricingType: 'Fixed',
-   *     amounts: [{ amount: '2000000', unit: 'lovelace' }],
-   *   },
-   * });
+   * // Updates are not supported - must re-register
+   * // Use registerAgent() with updated information instead
    * ```
    */
   async updateAgent(params: UpdateAgentParams): Promise<RegisteredAgent> {
-    try {
-      const previousAgent = this.registeredAgents.get(params.agentIdentifier);
-
-      const response = await this.client.patch<{ data: RegisteredAgent }>(
-        `/registry/${params.agentIdentifier}`,
-        {
-          network: params.network,
-          ...(params.description && { description: params.description }),
-          ...(params.apiBaseUrl && { apiBaseUrl: params.apiBaseUrl }),
-          ...(params.Capability && { Capability: params.Capability }),
-          ...(params.Pricing && { Pricing: params.Pricing }),
-          ...(params.tags && { tags: params.tags }),
-          ...(params.metadata && { metadata: params.metadata }),
-          ...(params.state && { state: params.state }),
-        }
-      );
-
-      const agent = response.data;
-
-      // Update local cache
-      this.registeredAgents.set(agent.agentIdentifier, agent);
-
-      // Emit events
-      this.emit('agent:updated', agent);
-
-      if (previousAgent && previousAgent.state !== agent.state) {
-        this.emit('agent:state_changed', {
-          agentIdentifier: agent.agentIdentifier,
-          previousState: previousAgent.state,
-          newState: agent.state,
-        });
-      }
-
-      return agent;
-    } catch (error) {
-      this.emit('registry:error', error as Error);
-      throw error;
-    }
+    // The Masumi API does not have a PATCH endpoint for registry updates
+    // Agents must be re-registered with updated metadata
+    throw new Error(
+      'Agent metadata updates are not supported via API. ' +
+      'To update an agent, you must re-register it using registerAgent() with updated information. ' +
+      'Alternatively, use the Masumi Explorer or payment service admin interface.'
+    );
   }
 
   /**

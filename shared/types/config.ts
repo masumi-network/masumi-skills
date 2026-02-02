@@ -29,9 +29,10 @@ export const MasumiPluginConfigSchema = z.object({
   // Network configuration
   network: NetworkSchema.default('Preprod'),
 
-  // Service URLs
-  paymentServiceUrl: z.string().url().default('https://payment.masumi.network/api/v1'),
-  registryServiceUrl: z.string().url().optional(),
+  // Service URLs - YOU run your own payment service (local or Railway)
+  // NO DEFAULT - User must provide their own service URL
+  paymentServiceUrl: z.string().url(), // Required: http://localhost:3000/api/v1 or https://your-service.railway.app/api/v1
+  registryServiceUrl: z.string().url().optional(), // Optional: defaults to paymentServiceUrl if not provided
 
   // API credentials (optional if auto-provisioning)
   paymentApiKey: z.string().optional(),

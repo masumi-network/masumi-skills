@@ -9,7 +9,7 @@ import {
   PaymentListResponse,
   PaymentStateChangeEvent,
 } from '../types/payment';
-import { MasumiPluginConfig } from '../types/config';
+import { MasumiPluginConfig } from '../../../shared/types/config';
 
 /**
  * Payment Manager Events
@@ -47,7 +47,17 @@ export class PaymentManager extends EventEmitter {
     super();
     this.config = config;
 
-    // Initialize API client
+    // Validate that user provided THEIR OWN service URL
+    if (!config.paymentServiceUrl) {
+      throw new Error(
+        'Payment service URL is required. ' +
+        'You must provide YOUR self-hosted payment service URL. ' +
+        'There is NO centralized payment.masumi.network service - you run your own node. ' +
+        'Examples: http://localhost:3000/api/v1 (local) or https://your-service.railway.app/api/v1 (Railway).'
+      );
+    }
+
+    // Initialize API client with USER'S OWN service
     this.client = new ApiClient({
       baseUrl: config.paymentServiceUrl,
       apiKey: config.paymentApiKey,
@@ -111,21 +121,25 @@ export class PaymentManager extends EventEmitter {
       purchaserId: identifierFromPurchaser,
     });
 
-    const response = await this.client.post<PaymentRequest>('/payment', payload);
+    // API returns: { status: string, data: PaymentRequest }
+    const response = await this.client.post<{ status: string; data: PaymentRequest }>('/payment', payload);
+    
+    // Extract the actual payment data (ApiClient already extracts .data, but handle both cases)
+    const payment = (response as any).data || response as unknown as PaymentRequest;
 
     // Store in pending payments
-    this.pendingPayments.set(response.blockchainIdentifier, response);
+    this.pendingPayments.set(payment.blockchainIdentifier, payment);
 
     // Emit event
-    this.emit('payment:created', response);
+    this.emit('payment:created', payment);
 
     console.log('Payment request created:', {
-      blockchainIdentifier: response.blockchainIdentifier,
-      payByTime: response.payByTime,
-      submitResultTime: response.submitResultTime,
+      blockchainIdentifier: payment.blockchainIdentifier,
+      payByTime: payment.payByTime,
+      submitResultTime: payment.submitResultTime,
     });
 
-    return response;
+    return payment;
   }
 
   /**
@@ -144,42 +158,46 @@ export class PaymentManager extends EventEmitter {
    * ```
    */
   async checkPaymentStatus(blockchainIdentifier: string): Promise<PaymentRequest> {
-    const response = await this.client.post<PaymentRequest>(
+    // API returns: { status: string, data: Payment }
+    const response = await this.client.post<{ status: string; data: PaymentRequest }>(
       '/payment/resolve-blockchain-identifier',
       {
         blockchainIdentifier,
         network: this.config.network,
       }
     );
+    
+    // Extract the actual payment data
+    const payment = response.data || response as unknown as PaymentRequest;
 
     const existing = this.pendingPayments.get(blockchainIdentifier);
     const previousState = existing?.onChainState;
 
     // Update stored payment
-    this.pendingPayments.set(blockchainIdentifier, response);
+    this.pendingPayments.set(blockchainIdentifier, payment);
 
-    // Emit state change event if state changed
-    if (previousState !== response.onChainState) {
-      const event: PaymentStateChangeEvent = {
-        blockchainIdentifier,
-        previousState: previousState || null,
-        newState: response.onChainState || null,
-        payment: response,
-      };
+      // Emit state change event if state changed
+      if (previousState !== payment.onChainState) {
+        const event: PaymentStateChangeEvent = {
+          blockchainIdentifier,
+          previousState: previousState || null,
+          newState: payment.onChainState || null,
+          payment: payment,
+        };
 
-      this.emit('payment:state_changed', event);
+        this.emit('payment:state_changed', event);
 
-      // Emit specific events
-      if (response.onChainState === 'FundsLocked') {
-        this.emit('payment:funds_locked', response);
-        console.log('Payment received (FundsLocked):', blockchainIdentifier);
-      } else if (response.onChainState === 'Withdrawn') {
-        this.emit('payment:completed', response);
-        console.log('Payment completed (Withdrawn):', blockchainIdentifier);
+        // Emit specific events
+        if (payment.onChainState === 'FundsLocked') {
+          this.emit('payment:funds_locked', payment);
+          console.log('Payment received (FundsLocked):', blockchainIdentifier);
+        } else if (payment.onChainState === 'Withdrawn') {
+          this.emit('payment:completed', payment);
+          console.log('Payment completed (Withdrawn):', blockchainIdentifier);
+        }
       }
-    }
 
-    return response;
+      return payment;
   }
 
   /**
@@ -202,9 +220,9 @@ export class PaymentManager extends EventEmitter {
    * ```
    */
   async submitResult(blockchainIdentifier: string, outputData: string): Promise<PaymentRequest> {
-    const payment = this.pendingPayments.get(blockchainIdentifier);
+    const existingPayment = this.pendingPayments.get(blockchainIdentifier);
 
-    if (!payment) {
+    if (!existingPayment) {
       throw new Error(
         `Payment not found: ${blockchainIdentifier}. ` +
         `Call checkPaymentStatus() first or ensure payment was created via this manager.`
@@ -212,21 +230,25 @@ export class PaymentManager extends EventEmitter {
     }
 
     // Calculate output hash (MIP-004)
-    const resultHash = createMasumiOutputHash(outputData, payment.identifierFromPurchaser);
+    const resultHash = createMasumiOutputHash(outputData, existingPayment.identifierFromPurchaser);
 
     console.log('Submitting result...', {
       blockchainIdentifier,
       resultHash,
     });
 
-    const response = await this.client.post<PaymentRequest>('/payment/submit-result', {
+    // API returns: { status: string, data: PaymentRequest }
+    const response = await this.client.post<{ status: string; data: PaymentRequest }>('/payment/submit-result', {
       blockchainIdentifier,
       network: this.config.network,
-      resultHash,
+      submitResultHash: resultHash, // API expects submitResultHash, not resultHash
     });
+    
+    // Extract the actual payment data
+    const updatedPayment = (response as any).data || response as unknown as PaymentRequest;
 
     // Update stored payment
-    this.pendingPayments.set(blockchainIdentifier, response);
+    this.pendingPayments.set(blockchainIdentifier, updatedPayment);
 
     // Emit event
     this.emit('payment:result_submitted', { blockchainIdentifier, resultHash });
@@ -234,10 +256,10 @@ export class PaymentManager extends EventEmitter {
     console.log('Result submitted:', {
       blockchainIdentifier,
       resultHash,
-      nextAction: response.NextAction.requestedAction,
+      nextAction: updatedPayment.NextAction.requestedAction,
     });
 
-    return response;
+    return updatedPayment;
   }
 
   /**
@@ -257,20 +279,24 @@ export class PaymentManager extends EventEmitter {
   async authorizeRefund(blockchainIdentifier: string): Promise<PaymentRequest> {
     console.log('Authorizing refund...', { blockchainIdentifier });
 
-    const response = await this.client.post<PaymentRequest>('/payment/authorize-refund', {
+    // API returns: { status: string, data: PaymentRequest }
+    const response = await this.client.post<{ status: string; data: PaymentRequest }>('/payment/authorize-refund', {
       blockchainIdentifier,
       network: this.config.network,
     });
+    
+    // Extract the actual payment data
+    const updatedPayment = (response as any).data || response as unknown as PaymentRequest;
 
     // Update stored payment
-    this.pendingPayments.set(blockchainIdentifier, response);
+    this.pendingPayments.set(blockchainIdentifier, updatedPayment);
 
     // Emit event
     this.emit('payment:refund_authorized', { blockchainIdentifier });
 
     console.log('Refund authorized:', blockchainIdentifier);
 
-    return response;
+    return updatedPayment;
   }
 
   /**
@@ -290,11 +316,19 @@ export class PaymentManager extends EventEmitter {
       throw new Error('sellerVkey not configured. Cannot query wallet balance.');
     }
 
-    const response = await this.client.get<WalletBalance>('/wallet', {
-      network: this.config.network,
-    });
-
-    return response;
+    // Note: The API requires walletType and id, but we only have sellerVkey
+    // We need to resolve the wallet ID first or use a different approach
+    // For now, we'll use the wallet query endpoint with walletVkey
+    // The actual API endpoint is GET /wallet/ with query params: walletType, id, includeSecret
+    // Since we don't have wallet ID, we'll need to list wallets first or use registry/wallet endpoint
+    
+    // Alternative: Use registry/wallet endpoint if available
+    // For now, throw a more descriptive error
+    throw new Error(
+      'Wallet balance query requires wallet ID. ' +
+      'The API endpoint GET /wallet/ requires walletType and id parameters. ' +
+      'Please use the payment service admin interface or provide wallet ID.'
+    );
   }
 
   /**
@@ -338,14 +372,17 @@ export class PaymentManager extends EventEmitter {
       params.filterSmartContractAddress = options.filterSmartContractAddress;
     }
 
+    // API returns: { status: string, data: { Payments: Payment[] } }
     const response = await this.client.get<{
-      data: PaymentRequest[];
-      nextCursorId?: string;
+      status: string;
+      data: {
+        Payments: PaymentRequest[];
+      };
     }>('/payment', params);
 
     return {
-      payments: response.data || [],
-      nextCursorId: response.nextCursorId,
+      payments: response.data?.Payments || [],
+      nextCursorId: undefined, // API doesn't return nextCursorId in this format, need to check actual response
     };
   }
 

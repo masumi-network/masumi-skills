@@ -1,18 +1,19 @@
 {
-  "name": "@masumi/openclaw-skill",
+  "name": "@masumi/openclaw-skills",
   "version": "1.0.0",
-  "description": "Zero-config Masumi payments skill for OpenClaw - enabling AI agents to accept blockchain payments with one command",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "description": "Modular OpenClaw skills monorepo: Cardano Wallet, Masumi Payments, and Sokosumi Marketplace",
+  "private": true,
+  "workspaces": [
+    "skills/*"
+  ],
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc --watch",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
-    "lint": "eslint src --ext .ts",
-    "lint:fix": "eslint src --ext .ts --fix",
-    "clean": "rm -rf dist",
-    "prepublishOnly": "npm run clean && npm run build"
+    "build": "npm run build --workspaces",
+    "build:cardano-wallet": "npm run build --workspace=skills/cardano-wallet",
+    "build:masumi-payments": "npm run build --workspace=skills/masumi-payments",
+    "build:sokosumi-marketplace": "npm run build --workspace=skills/sokosumi-marketplace",
+    "clean": "npm run clean --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces"
   },
   "keywords": [
     "masumi",
@@ -22,32 +23,15 @@
     "ai-agents",
     "cardano",
     "web3",
-    "cryptocurrency"
+    "cryptocurrency",
+    "sokosumi",
+    "marketplace"
   ],
   "author": "Masumi Network",
   "license": "MIT",
-  "dependencies": {
-    "zod": "^3.22.4",
-    "node-fetch": "^3.3.2",
-    "canonicaljson": "^1.0.0",
-    "@meshsdk/core": "^1.7.9",
-    "@meshsdk/core-cst": "^1.9.0-beta.90",
-    "@emurgo/cardano-serialization-lib-nodejs": "^15.0.3",
-    "@blockfrost/blockfrost-js": "^6.0.0",
-    "dotenv": "^16.4.0"
-  },
   "devDependencies": {
     "@types/node": "^20.11.0",
-    "@types/node-fetch": "^2.6.11",
-    "typescript": "^5.3.3",
-    "tsx": "^4.7.0",
-    "vitest": "^1.2.0",
-    "eslint": "^8.56.0",
-    "@typescript-eslint/eslint-plugin": "^6.19.0",
-    "@typescript-eslint/parser": "^6.19.0"
-  },
-  "peerDependencies": {
-    "openclaw": "*"
+    "typescript": "^5.3.3"
   },
   "engines": {
     "node": ">=18.0.0"

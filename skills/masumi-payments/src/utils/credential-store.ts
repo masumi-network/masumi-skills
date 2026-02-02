@@ -2,7 +2,7 @@ import { promises as fs } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
 import { encrypt, decrypt } from './encryption';
-import { Network } from '../types/config';
+import { Network } from '../../../shared/types/config';
 
 /**
  * Stored credential structure
@@ -24,7 +24,7 @@ export interface StoredCredentials {
  * Get default credentials directory path
  */
 function getCredentialsDir(): string {
-  return join(homedir(), '.openclaw', 'credentials', 'masumi');
+  return join(homedir(), '.openclaw', 'credentials', 'masumi-payments');
 }
 
 /**

@@ -1,403 +1,280 @@
-# Masumi Payments Skill for OpenClaw
+# Masumi OpenClaw Skills Monorepo
 
-**OpenClaw skill that teaches AI agents to accept Cardano blockchain payments**
+**Modular OpenClaw skills for Cardano blockchain payments and agent collaboration**
 
-> Self-hosted payment service • Decentralized architecture • Agent-to-Agent payments • No centralized admin
+This repository contains three self-contained OpenClaw skills that can be loaded independently:
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Network: Cardano](https://img.shields.io/badge/Network-Cardano-blue.svg)](https://cardano.org)
-[![Protocol: x402](https://img.shields.io/badge/Protocol-x402-green.svg)](https://x402.org)
+1. **Cardano Wallet** - Generate, manage, and fund Cardano wallets
+2. **Masumi Payments** - Install payment service, generate API keys, register agents, handle payments
+3. **Sokosumi Marketplace** - Hire agents from Sokosumi marketplace
 
----
+## Repository Structure
 
-<!-- CRITICAL INSTRUCTIONS FOR AI AGENTS (OpenClaw, Claude Code, Cody, Cursor, Copilot, etc.) -->
+```
+masumi-openclaw-skills/
+├── skills/
+│   ├── cardano-wallet/         # Skill 1: Cardano Wallet Management
+│   │   ├── plugin.json
+│   │   ├── SKILL.md
+│   │   ├── package.json
+│   │   └── src/
+│   │
+│   ├── masumi-payments/        # Skill 2: Masumi Payments & Registry
+│   │   ├── plugin.json
+│   │   ├── SKILL.md
+│   │   ├── package.json
+│   │   └── src/
+│   │
+│   └── sokosumi-marketplace/    # Skill 3: Sokosumi Marketplace
+│       ├── plugin.json
+│       ├── SKILL.md
+│       ├── package.json
+│       └── src/
+│
+└── shared/                      # Shared types
+    └── types/
+        └── config.ts
+```
 
-## FOR AI AGENTS: YOU MUST ACTUALLY USE MASUMI - READING IS NOT ENOUGH
+## Skills Overview
 
-If a user asks you to "use Masumi", "try Masumi payments", "check out Masumi", or "integrate Masumi":
+### Cardano Wallet Skill
 
-**YOU MUST ACTUALLY SET IT UP AND USE IT. DO NOT JUST SUMMARIZE THIS README.**
+**Purpose**: Generate, manage, and fund Cardano wallets
 
-### Required Actions:
+**Tools**:
+- `cardano_generate_wallet` - Generate new wallet (24-word mnemonic)
+- `cardano_restore_wallet` - Restore wallet from mnemonic
+- `cardano_get_wallet_address` - Get public address
+- `cardano_generate_funding_qr` - Generate QR code for funding wallet
+- `cardano_get_wallet_balance` - Check wallet balance (requires Blockfrost)
+- `cardano_backup_wallet` - Securely backup wallet credentials
 
-1. **Read SKILL.md FIRST** - Contains the actual instructions
-   ```bash
-   cat SKILL.md
-   ```
+**Dependencies**: `@meshsdk/core`, `qrcode`, `@blockfrost/blockfrost-js`
 
-2. **Ask ONE question to determine setup mode**:
+**Documentation**: See `skills/cardano-wallet/SKILL.md`
 
-   "Do you want me to deploy and set up masumi-payment-service automatically, or do you already have it running?"
+### Masumi Payments Skill
 
-   **Option A: Automatic Setup** (User says "do it automatically" or "set it up for me")
-   - Clone masumi-payment-service from: https://github.com/masumi-network/masumi-payment-service
-   - Run locally with `npm install && npm start` (AI CAN do this)
-   - Note: Cannot deploy to Railway automatically (requires browser login) - user must deploy Railway manually if needed
-   - Generate admin API key automatically: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
-   - Generate Cardano wallet automatically
-   - Configure environment variables (.env file)
-   - Ask user for: Blockfrost API key (AI CANNOT sign up - user must go to https://blockfrost.io)
-   - Ask user to: Fund wallet from faucet (AI CANNOT do this - user must go to https://docs.cardano.org/cardano-testnet/tools/faucet/)
-   - Register agent on blockchain
-   - Test the payment flow
+**Purpose**: Install payment service, generate API keys, register agents, handle payments
 
-   **Option B: Use Existing Setup** (User says "I already deployed it" or "here are my credentials")
-   - Ask for: Payment service URL
-   - Ask for: Admin API key
-   - Test their payment service
-   - Proceed with integration
+**Tools**:
+- `masumi_install_payment_service` - Clone and install masumi-payment-service locally
+- `masumi_start_payment_service` - Start the payment service (check if running)
+- `masumi_generate_api_key` - Generate admin API key via payment service API
+- `masumi_enable` - Full setup: install service, generate API key, register agent
+- `masumi_create_payment` - Create payment request
+- `masumi_check_payment` - Check payment status
+- `masumi_complete_payment` - Submit result and complete payment
+- `masumi_register_agent` - Register agent in Masumi registry
+- `masumi_search_agents` - Search for other agents
+- `masumi_get_agent` - Get agent details
 
-3. **Actually make API calls** and report real results:
+**Dependencies**: `zod`, `node-fetch`, `canonicaljson`, `@meshsdk/core`, `@blockfrost/blockfrost-js`
 
-   Test the payment service (use localhost:3000 if running locally, or Railway URL):
-   ```bash
-   # Local:
-   curl -X GET http://localhost:3000/health
+**Documentation**: See `skills/masumi-payments/SKILL.md`
 
-   # Railway:
-   curl -X GET https://their-payment-service.railway.app/health
-   ```
+**Important**: Masumi is a **self-hosted, decentralized service**. Each user runs their own payment service node. There is NO centralized `payment.masumi.network` service.
 
-   Create a test payment request (use Preprod for testing, Mainnet for production):
-   ```bash
-   # Example (replace <SERVICE_URL> and <NETWORK>):
-   curl -X POST <SERVICE_URL>/api/v1/payment \
-     -H "token: THEIR_ADMIN_KEY" \
-     -d '{"agentIdentifier": "test", "network": "<NETWORK>", ...}'
-   ```
+### Sokosumi Marketplace Skill
 
-4. **Report actual results** - Not what you think should happen, what ACTUALLY happened
+**Purpose**: Hire agents from Sokosumi marketplace
 
-### Common Mistakes to Avoid:
+**Tools**:
+- `sokosumi_list_agents` - Browse available agents
+- `sokosumi_hire_agent` - Hire an agent for a task
+- `sokosumi_check_job` - Check job status
+- `sokosumi_get_result` - Get completed job results
 
-WRONG: "I read the README and Masumi lets agents accept payments..."
-RIGHT: "I called your payment service API at railway.app/api/v1/payment and got response: {...}"
+**Dependencies**: `node-fetch`
 
-WRONG: "You need to get an API key from Masumi"
-RIGHT: "YOU are the admin - use the API key YOU generated when deploying masumi-payment-service"
+**Documentation**: See `skills/sokosumi-marketplace/SKILL.md`
 
-WRONG: "Masumi provides a centralized payment service"
-RIGHT: "YOU run your own payment service - there is no centralized Masumi service"
+**Payment Modes**:
+- **Simple mode**: Just Sokosumi API key (Sokosumi handles payments in USDM)
+- **Advanced mode**: Uses Masumi Payments skill for self-hosted payments
 
-### Remember:
-- Each agent operator runs their OWN payment service
-- There is NO centralized admin - the user IS the admin
-- Actually USE the terminal to test their service
-- Report REAL outputs, not summaries
+## Installation
 
-<!-- END CRITICAL INSTRUCTIONS -->
+### Install All Skills
 
----
+```bash
+npm install
+```
 
-## What This Is
+### Install Individual Skill
 
-This is an **OpenClaw skill** that teaches AI agents to participate in the Masumi decentralized payment network. Unlike traditional plugins, each agent operator:
+```bash
+# Cardano Wallet
+cd skills/cardano-wallet
+npm install
 
-- **Runs their own payment service** (on Railway, locally, etc.)
-- **Controls their own wallets** (self-custodied on Cardano)
-- **Acts as their own admin** (no centralized authority)
+# Masumi Payments
+cd skills/masumi-payments
+npm install
 
-## Key Concepts
+# Sokosumi Marketplace
+cd skills/sokosumi-marketplace
+npm install
+```
 
-| Concept | Description |
-|---------|-------------|
-| **Self-Hosted** | Each agent runs their own masumi-payment-service instance |
-| **Decentralized** | No centralized admin - you are your own admin |
-| **Agent-to-Agent** | Direct payments between AI agents for services |
-| **Blockchain-Based** | Cardano network for trustless transactions |
-| **Framework Agnostic** | Works with CrewAI, AutoGen, PhiData, LangGraph, etc. |
+## Building
 
----
+### Build All Skills
+
+```bash
+npm run build
+```
+
+### Build Individual Skill
+
+```bash
+npm run build:cardano-wallet
+npm run build:masumi-payments
+npm run build:sokosumi-marketplace
+```
+
+## Loading Skills in OpenClaw
+
+Each skill can be loaded independently:
+
+```typescript
+// Load Cardano Wallet skill
+import '@masumi/cardano-wallet-skill';
+
+// Load Masumi Payments skill
+import '@masumi/masumi-payments-skill';
+
+// Load Sokosumi Marketplace skill
+import '@masumi/sokosumi-marketplace-skill';
+```
+
+Or load via plugin.json:
+
+```json
+{
+  "plugins": [
+    "skills/cardano-wallet/plugin.json",
+    "skills/masumi-payments/plugin.json",
+    "skills/sokosumi-marketplace/plugin.json"
+  ]
+}
+```
 
 ## Quick Start
 
-### For OpenClaw Users
+### 1. Cardano Wallet
 
-1. **Load the skill** in your OpenClaw session:
-```
-/skills masumi-payments
-```
+```typescript
+import { cardano_generate_wallet, cardano_generate_funding_qr } from '@masumi/cardano-wallet-skill';
 
-2. **Read SKILL.md** - Contains complete instructions for:
-   - Deploying your own payment service
-   - Setting up Cardano wallets
-   - Registering your agent
-   - Accepting payments
+// Generate wallet
+const wallet = await cardano_generate_wallet({ network: 'Preprod' });
 
-### For Manual Setup
-
-1. **Deploy masumi-payment-service** (required):
-```bash
-# Clone the payment service
-git clone https://github.com/masumi-network/masumi-payment-service
-cd masumi-payment-service
-
-# Deploy to Railway or run locally
-railway init && railway up
-# OR
-npm install && npm start
+// Generate QR code for funding
+const qr = await cardano_generate_funding_qr({
+  address: wallet.address,
+  network: 'Preprod'
+});
 ```
 
-2. **Follow SKILL.md** for complete setup instructions
+### 2. Masumi Payments
 
-3. **Your payment service becomes your admin interface** at:
-   - Railway: `https://your-service.railway.app`
-   - Local: `http://localhost:3000`
+```typescript
+import { masumi_enable, masumi_create_payment } from '@masumi/masumi-payments-skill';
 
----
+// Enable Masumi (auto-installs service if needed)
+await masumi_enable({
+  agentName: 'My Agent',
+  pricingTier: 'free',
+  installService: true
+});
 
-## How It Works
-
-### Architecture Overview
-
-```
-┌──────────────────┐
-│  Your AI Agent   │
-│  (CrewAI, etc.)  │
-└────────┬─────────┘
-         │
-         ▼
-┌─────────────────────────┐
-│  Your Payment Service   │ ◄── You deploy this (Railway/local)
-│  (masumi-payment-service)│
-└────────┬────────────────┘
-         │
-         ▼
-┌──────────────────┐
-│ Cardano Blockchain│
-│   (Preprod/Mainnet)│
-└──────────────────┘
+// Create payment request
+const payment = await masumi_create_payment({
+  buyerIdentifier: 'buyer123',
+  taskDescription: 'Analyze data'
+});
 ```
 
-### Payment Flow
+### 3. Sokosumi Marketplace
 
-1. **Agent creates payment request** → Payment service generates blockchain ID
-2. **Buyer pays** → Funds locked on-chain
-3. **Payment service detects** → `FundsLocked` state
-4. **Agent executes work** → Processes the task
-5. **Agent submits result** → Payment service unlocks funds
-6. **Funds released** → Agent receives payment
+```typescript
+import { sokosumi_list_agents, sokosumi_hire_agent } from '@masumi/sokosumi-marketplace-skill';
 
-### Using Your Payment Service API
+// List available agents
+const agents = await sokosumi_list_agents();
 
-Once deployed, your payment service exposes REST APIs.
-
-**Service URL:**
-- Local: `http://localhost:3000`
-- Railway: `https://your-service.railway.app`
-
-**Network:**
-- Testing: `Preprod`
-- Production: `Mainnet`
-
-```bash
-# Create payment request
-curl -X POST <SERVICE_URL>/api/v1/payment \
-  -H "token: YOUR_ADMIN_API_KEY" \
-  -d '{
-    "agentIdentifier": "agent_your_id",
-    "network": "<NETWORK>",
-    "identifierFromPurchaser": "buyer_id",
-    "inputData": {"task": "analyze data"}
-  }'
-
-# Check payment status
-curl -X GET "<SERVICE_URL>/api/v1/payment/status?blockchainIdentifier=payment_xyz&network=<NETWORK>" \
-  -H "token: YOUR_ADMIN_API_KEY"
-
-# Submit result (unlocks funds)
-curl -X POST <SERVICE_URL>/api/v1/payment/submit-result \
-  -H "token: YOUR_ADMIN_API_KEY" \
-  -d '{
-    "blockchainIdentifier": "payment_xyz",
-    "network": "<NETWORK>",
-    "resultHash": "sha256_hash_of_result"
-  }'
+// Hire an agent
+const job = await sokosumi_hire_agent({
+  agentId: 'agent-123',
+  inputData: JSON.stringify({ task: 'Analyze data' }),
+  maxAcceptedCredits: 100
+});
 ```
 
----
+## Configuration
 
-## What You Need (Human Requirements)
+### Environment Variables
 
-### Required - Human Must Provide:
-- **Node.js 18+** installed locally
-- **Cardano wallet with test ADA**
-  - Human must go to https://docs.cardano.org/cardano-testnet/tools/faucet/
-  - AI agents cannot request faucet ADA automatically
-- **Blockfrost API key**
-  - Human must sign up at https://blockfrost.io/
-  - Create Preprod project, copy API key
-  - AI agents cannot sign up for accounts
-- **Railway account OR local server**
-  - Human must deploy masumi-payment-service
-  - AI agents can guide but cannot deploy for you
+Each skill has its own configuration. See individual SKILL.md files for details.
 
-### What AI Agents Can Help With:
-- Generating admin API keys
-- Making API calls to your payment service
-- Testing payment flows
-- Configuring environment variables
-- Writing integration code
+**Cardano Wallet**:
+- `CARDANO_NETWORK`: "Preprod" or "Mainnet" (default: "Preprod")
+- `BLOCKFROST_API_KEY`: Blockfrost API key (for balance checks)
 
-**Bottom line:** Humans handle accounts/signups/faucets, AI agents handle code/API calls/testing.
+**Masumi Payments**:
+- `MASUMI_PAYMENT_SERVICE_URL`: YOUR self-hosted payment service URL (required)
+- `MASUMI_PAYMENT_API_KEY`: Admin API key
+- `MASUMI_NETWORK`: "Preprod" or "Mainnet" (default: "Preprod")
 
----
+**Sokosumi Marketplace**:
+- `SOKOSUMI_API_KEY`: Sokosumi API key (required)
+- `SOKOSUMI_API_ENDPOINT`: API endpoint (default: https://sokosumi.com/api/v1)
 
-## Key Features
+## Important Notes
 
-### Identity & Trust
-- Blockchain-backed agent credentials
-- Verifiable identity on Cardano
-- DID (Decentralized Identifier) support
+### Masumi is Self-Hosted
 
-### Decision Logging
-- Immutable proof of agent outputs
-- Cryptographic hashes stored on-chain
-- Accountability and auditability
+**CRITICAL**: Masumi is NOT a centralized service. Each user runs their own payment service node:
+- Local: `http://localhost:3000/api/v1`
+- Railway: `https://your-service.railway.app/api/v1`
 
-### Agent Payments
-- Agent-to-Agent (A2A) payments
-- Human-to-Agent (H2A) payments
-- Escrow mechanism with automatic fund locking
-- Result verification before payment release
+There is NO centralized `payment.masumi.network` service.
 
----
+### Skill Dependencies
 
-## Payment Service API Reference
+- **Cardano Wallet**: Standalone, no dependencies on other skills
+- **Masumi Payments**: Standalone, includes wallet generation for auto-provisioning
+- **Sokosumi Marketplace**: Can optionally use Masumi Payments skill for advanced mode
 
-Once you deploy masumi-payment-service, you have access to these endpoints.
+## Development
 
-**Note:** Use `Preprod` for testing, `Mainnet` for production.
+### Workspace Management
 
-### Create Payment Request
-```bash
-POST /api/v1/payment
-Headers: token: YOUR_ADMIN_API_KEY
-Body: {
-  "agentIdentifier": "agent_your_id",
-  "network": "<NETWORK>",
-  "identifierFromPurchaser": "buyer_random_id",
-  "inputData": {"task": "analysis"}
+This repository uses npm workspaces. All skills share the root `node_modules` for common dependencies.
+
+### TypeScript Configuration
+
+Each skill extends the root `tsconfig.json`:
+
+```json
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  }
 }
 ```
-
-### Check Payment Status
-```bash
-GET /api/v1/payment/status?blockchainIdentifier=payment_xyz&network=<NETWORK>
-Headers: token: YOUR_ADMIN_API_KEY
-```
-
-### Submit Result (Unlock Funds)
-```bash
-POST /api/v1/payment/submit-result
-Headers: token: YOUR_ADMIN_API_KEY
-Body: {
-  "blockchainIdentifier": "payment_xyz",
-  "network": "<NETWORK>",
-  "resultHash": "sha256_hash"
-}
-```
-
-### Register Agent
-```bash
-POST /api/v1/registry
-Headers: token: YOUR_ADMIN_API_KEY
-Body: {
-  "network": "<NETWORK>",
-  "name": "MyAgent",
-  "description": "Agent description",
-  "apiBaseUrl": "https://your-agent.com",
-  "Capability": {"name": "data-analysis", "version": "1.0.0"},
-  "Author": {"name": "Your Name"},
-  "Pricing": {"pricingType": "Fixed", "amounts": [{"amount": "1000000", "unit": "lovelace"}]}
-}
-```
-
----
-
-## Payment States
-
-Understanding the payment lifecycle:
-
-| State | Description | Your Next Action |
-|-------|-------------|------------------|
-| `WaitingForExternalAction` | Waiting for buyer to pay | Wait for payment |
-| `FundsLocked` | **Payment received!** | **Execute work now** |
-| `ResultSubmitted` | Result submitted | Wait for unlock time |
-| `Withdrawn` | **Completed** | Funds in your wallet |
-| `RefundWithdrawn` | Refunded | Payment cancelled |
-
-## Get Test ADA
-
-For Preprod testing:
-1. Go to https://docs.cardano.org/cardano-testnet/tools/faucet/
-2. Select "Preprod"
-3. Enter your wallet address
-4. Request 10,000 test ADA (free)
-
----
-
-## Technology Stack
-
-| Component | Technology |
-|-----------|-----------|
-| **Blockchain** | Cardano (Preprod/Mainnet) |
-| **Payment Service** | masumi-payment-service (Node.js) |
-| **Wallet Standard** | BIP39 (24-word mnemonic) + BIP44 (HD derivation) |
-| **Hashing** | MIP-004 compliant (SHA-256 + JSON Canonical Serialization) |
-| **Smart Contracts** | Plutus (on Cardano) |
-| **API Standard** | MIP-003 Agentic Service API |
-| **Deployment** | Railway, local, or any Node.js hosting |
-
-### Security Features
-
-- Self-custodied wallets (you control private keys)
-- Escrow mechanism (funds locked until work verified)
-- On-chain verification (blockchain-based proof)
-- MIP-004 compliant hashing (tamper-proof data integrity)
-- Admin API key authentication (you control access)
-
----
-
-## Troubleshooting
-
-### "401 Unauthorized"
-Your admin API key is wrong. Use the key YOU generated when deploying masumi-payment-service.
-
-### "Agent not found"
-Register your agent first using `POST /api/v1/registry` with your admin API key.
-
-### "Payment service not responding"
-Check your Railway deployment or local service is actually running.
-
-### Wallet balance is 0
-Get test ADA from https://docs.cardano.org/cardano-testnet/tools/faucet/
-
-### "Payment status never changes"
-The buyer needs to actually send ADA on-chain. Check the Cardano blockchain explorer.
-
----
 
 ## Resources
 
 - **Masumi Documentation**: https://docs.masumi.network
-- **Payment Service Repo**: https://github.com/masumi-network/masumi-payment-service
-- **Registry Service Repo**: https://github.com/masumi-network/masumi-registry-service
-- **MIP-003 Standard**: https://docs.masumi.network/mips/_mip-003
-- **Cardano Faucet**: https://docs.cardano.org/cardano-testnet/tools/faucet/
-- **Kodosumi (Scaling)**: https://docs.kodosumi.io/
-- **GitHub Issues**: https://github.com/masumi-network/masumi-openclaw-skill/issues
-
----
+- **Payment Service**: https://github.com/masumi-network/masumi-payment-service
+- **Registry Service**: https://github.com/masumi-network/masumi-registry-service
+- **Sokosumi**: https://sokosumi.com
 
 ## License
 
-MIT License - See [LICENSE](./LICENSE)
-
----
-
-**Built for autonomous AI agents to participate in the decentralized economy**
-
-*Each agent operator runs their own infrastructure. There is no centralized admin.*
-
-*Last Updated: February 1, 2026*
+MIT
