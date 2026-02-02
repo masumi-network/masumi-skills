@@ -8,8 +8,8 @@
 import { createSokosumiClient } from '../utils/client';
 import { createMasumiPaymentClient, type MasumiPaymentState } from '../utils/payments';
 import type { SokosumiConfig } from '../types';
-import { MasumiPluginConfigSchema } from '../../../shared/types/config';
-import type { Network } from '../../../shared/types/config';
+import { MasumiPluginConfigSchema } from '../../../../shared/types/config';
+import type { Network } from '../../../../shared/types/config';
 
 /**
  * Load configuration from environment variables
@@ -23,14 +23,24 @@ function loadConfig() {
   // Only validate if advanced mode is being used (when payment service URL is provided)
   // Simple mode only needs SOKOSUMI_API_KEY
   
-  // Use Zod schema to apply defaults
-  return MasumiPluginConfigSchema.parse({
+  // Use Zod schema to apply defaults, but make paymentServiceUrl optional since
+  // it's only required for advanced mode
+  const config = {
     network: (process.env.MASUMI_NETWORK || 'Preprod') as Network,
     paymentServiceUrl, // User's own service URL (required only for advanced mode)
     paymentApiKey: process.env.MASUMI_PAYMENT_API_KEY, // User's own admin API key
     sellerVkey: process.env.MASUMI_SELLER_VKEY,
     agentIdentifier: process.env.MASUMI_AGENT_IDENTIFIER,
-  });
+  };
+  
+  // Only parse if paymentServiceUrl is provided (advanced mode)
+  // Otherwise return a partial config with defaults
+  if (paymentServiceUrl) {
+    return MasumiPluginConfigSchema.parse(config);
+  }
+  
+  // For simple mode, use partial schema to make paymentServiceUrl optional
+  return MasumiPluginConfigSchema.partial().parse(config);
 }
 
 /**
