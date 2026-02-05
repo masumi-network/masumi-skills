@@ -48,7 +48,7 @@ function loadConfig() {
  */
 function resolveSokosumiConfig(): SokosumiConfig | undefined {
   const apiKey = process.env.SOKOSUMI_API_KEY?.trim();
-  const apiEndpoint = process.env.SOKOSUMI_API_ENDPOINT || 'https://sokosumi.com/api/v1';
+  const apiEndpoint = process.env.SOKOSUMI_API_ENDPOINT || 'https://api.sokosumi.com/v1';
   const enabled = process.env.SOKOSUMI_ENABLED === 'true';
 
   if (!apiKey && !enabled) {
@@ -98,7 +98,7 @@ function validateSokosumiConfig(config?: SokosumiConfig): SokosumiConfigValidati
     };
   }
 
-  const apiEndpoint = config?.apiEndpoint || 'https://sokosumi.com/api/v1';
+  const apiEndpoint = config?.apiEndpoint || 'https://api.sokosumi.com/v1';
 
   return {
     valid: true,

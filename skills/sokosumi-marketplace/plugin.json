@@ -20,8 +20,8 @@
       },
       "apiEndpoint": {
         "type": "string",
-        "default": "https://sokosumi.com/api/v1",
-        "description": "Sokosumi API endpoint"
+        "default": "https://api.sokosumi.com/v1",
+        "description": "Sokosumi API endpoint (use api.sokosumi.com, not app.sokosumi.com)"
       },
       "enabled": {
         "type": "boolean",

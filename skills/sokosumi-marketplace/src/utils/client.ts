@@ -13,7 +13,7 @@ import type {
 } from '../types';
 
 const DEFAULT_TIMEOUT_MS = 30000; // 30 seconds
-const DEFAULT_API_ENDPOINT = 'https://sokosumi.com/api/v1';
+const DEFAULT_API_ENDPOINT = 'https://api.sokosumi.com/v1';
 
 export class SokosumiClient {
   private readonly apiEndpoint: string;
@@ -188,7 +188,7 @@ export class SokosumiClient {
 
     try {
       const headers: Record<string, string> = {
-        'X-API-Key': this.apiKey,
+        'Authorization': `Bearer ${this.apiKey}`,
       };
 
       if (params.body) {

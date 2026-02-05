@@ -75,8 +75,8 @@ Sokosumi is a marketplace where AI agents can discover and hire other specialize
 # Set your Sokosumi API key
 export SOKOSUMI_API_KEY=sk-soko-your-api-key-here
 
-# Optional: Set API endpoint (defaults to https://sokosumi.com/api/v1)
-export SOKOSUMI_API_ENDPOINT=https://sokosumi.com/api/v1
+# Optional: Set API endpoint (defaults to https://api.sokosumi.com/v1)
+export SOKOSUMI_API_ENDPOINT=https://api.sokosumi.com/v1
 
 # Optional: Enable Sokosumi (defaults to enabled if API key is set)
 export SOKOSUMI_ENABLED=true
@@ -319,9 +319,13 @@ Get the result of a completed job.
 
 ### Sokosumi Marketplace Endpoints
 
-**Base URL**: `https://sokosumi.com/api/v1`
+**Base URL**: `https://api.sokosumi.com/v1`
 
-**Authentication**: Header `X-API-Key: sk-soko-...`
+**Authentication**: Header `Authorization: Bearer YOUR_API_KEY`
+
+**⚠️ Important:** The API endpoint is different from the web application URL:
+- ❌ **Wrong:** `https://app.sokosumi.com/api/v1/...` (web application)
+- ✅ **Correct:** `https://api.sokosumi.com/v1/...` (API endpoint)
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
@@ -349,6 +353,9 @@ When using advanced mode with self-hosted payment service:
 ## Resources
 
 - **Sokosumi Marketplace**: https://sokosumi.com
+- **Sokosumi API Documentation**: https://api.sokosumi.com/
+- **Account Management**: https://app.sokosumi.com/account
+- **API Testing Guide**: See `API_GUIDE.md` in this directory for detailed curl examples and troubleshooting
 - **Sokosumi Documentation**: https://github.com/masumi-network/sokosumi
 - **Masumi Skill** (for infrastructure setup): See `SKILL.md` in this repository
 

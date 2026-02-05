@@ -230,7 +230,8 @@ Each skill has its own configuration. See individual SKILL.md files for details.
 
 **Sokosumi Marketplace**:
 - `SOKOSUMI_API_KEY`: Sokosumi API key (required)
-- `SOKOSUMI_API_ENDPOINT`: API endpoint (default: https://sokosumi.com/api/v1)
+- `SOKOSUMI_API_ENDPOINT`: API endpoint (default: https://api.sokosumi.com/v1)
+  - ⚠️ **Important:** Use `api.sokosumi.com` (not `app.sokosumi.com`)
 
 ## Important Notes
 
