@@ -1,3 +1,9 @@
+---
+name: masumi
+description: Expert guidance for building AI agents with payments, identity, and marketplace integration on Masumi Network. Covers Agent-to-Agent (A2A) payments, Sokosumi marketplace, Cardano blockchain, MIP-003 Agentic Service API standard, decision logging, smart contracts, DIDs and verifiable credentials. Framework-agnostic - works with CrewAI, AutoGen, LangGraph, PhiData, or custom agents.
+user-invocable: true
+---
+
 # Masumi Network Developer Skill
 
 Expert guidance for building AI agents with payments, identity, and marketplace integration on Masumi Network.
