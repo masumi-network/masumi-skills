@@ -1,281 +1,270 @@
-# Masumi OpenClaw Skills Monorepo
+# Masumi Network Developer Skill
 
-**Modular OpenClaw skills for Cardano blockchain payments and agent collaboration**
+**Expert guidance for building AI agents with payments, identity, and marketplace integration on Masumi Network.**
 
-This repository contains three self-contained OpenClaw skills that can be loaded independently:
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Masumi Network](https://img.shields.io/badge/Masumi-Network-blue)](https://docs.masumi.network)
+[![Discord](https://img.shields.io/discord/masumi)](https://discord.gg/masumi)
 
-1. **Cardano Wallet** - Generate, manage, and fund Cardano wallets
-2. **Masumi Payments** - Install payment service, generate API keys, register agents, handle payments
-3. **Sokosumi Marketplace** - Hire agents from Sokosumi marketplace
+A comprehensive skill for LLM-powered development tools (Claude Code, Cursor, Windsurf, etc.) that provides deep knowledge of the Masumi ecosystem for building, deploying, and monetizing AI agents.
 
-## Repository Structure
+## 🚀 Quick Install
 
-```
-masumi-openclaw-skills/
-├── skills/
-│   ├── cardano-wallet/         # Skill 1: Cardano Wallet Management
-│   │   ├── plugin.json
-│   │   ├── SKILL.md
-│   │   ├── package.json
-│   │   └── src/
-│   │
-│   ├── masumi-payments/        # Skill 2: Masumi Payments & Registry
-│   │   ├── plugin.json
-│   │   ├── SKILL.md
-│   │   ├── package.json
-│   │   └── src/
-│   │
-│   └── sokosumi-marketplace/    # Skill 3: Sokosumi Marketplace
-│       ├── plugin.json
-│       ├── SKILL.md
-│       ├── package.json
-│       └── src/
-│
-└── shared/                      # Shared types
-    └── types/
-        └── config.ts
-```
-
-## Skills Overview
-
-### Cardano Wallet Skill
-
-**Purpose**: Generate, manage, and fund Cardano wallets
-
-**Tools**:
-- `cardano_generate_wallet` - Generate new wallet (24-word mnemonic)
-- `cardano_restore_wallet` - Restore wallet from mnemonic
-- `cardano_get_wallet_address` - Get public address
-- `cardano_generate_funding_qr` - Generate QR code for funding wallet
-- `cardano_get_wallet_balance` - Check wallet balance (requires Blockfrost)
-- `cardano_backup_wallet` - Securely backup wallet credentials
-
-**Dependencies**: `@meshsdk/core`, `qrcode`, `@blockfrost/blockfrost-js`
-
-**Documentation**: See `skills/cardano-wallet/SKILL.md`
-
-### Masumi Payments Skill
-
-**Purpose**: Install payment service, generate API keys, register agents, handle payments
-
-**Tools**:
-- `masumi_install_payment_service` - Clone and install masumi-payment-service locally
-- `masumi_start_payment_service` - Start the payment service (check if running)
-- `masumi_generate_api_key` - Generate admin API key via payment service API
-- `masumi_enable` - Full setup: install service, generate API key, register agent
-- `masumi_create_payment` - Create payment request
-- `masumi_check_payment` - Check payment status
-- `masumi_complete_payment` - Submit result and complete payment
-- `masumi_register_agent` - Register agent in Masumi registry
-- `masumi_search_agents` - Search for other agents
-- `masumi_get_agent` - Get agent details
-
-**Dependencies**: `zod`, `node-fetch`, `canonicaljson`, `@meshsdk/core`, `@blockfrost/blockfrost-js`
-
-**Documentation**: See `skills/masumi-payments/SKILL.md`
-
-**Important**: Masumi is a **self-hosted, decentralized service**. Each user runs their own payment service node. There is NO centralized `payment.masumi.network` service.
-
-### Sokosumi Marketplace Skill
-
-**Purpose**: Hire agents from Sokosumi marketplace
-
-**Tools**:
-- `sokosumi_list_agents` - Browse available agents
-- `sokosumi_hire_agent` - Hire an agent for a task
-- `sokosumi_check_job` - Check job status
-- `sokosumi_get_result` - Get completed job results
-
-**Dependencies**: `node-fetch`
-
-**Documentation**: See `skills/sokosumi-marketplace/SKILL.md`
-
-**Payment Modes**:
-- **Simple mode**: Just Sokosumi API key (Sokosumi handles payments in USDM)
-- **Advanced mode**: Uses Masumi Payments skill for self-hosted payments
-
-## Installation
-
-### Install All Skills
-
+### NPX (Recommended)
 ```bash
-npm install
+npx skills add https://github.com/masumi-network/masumi-skills
 ```
 
-### Install Individual Skill
-
+### Manual Installation
 ```bash
-# Cardano Wallet
-cd skills/cardano-wallet
-npm install
-
-# Masumi Payments
-cd skills/masumi-payments
-npm install
-
-# Sokosumi Marketplace
-cd skills/sokosumi-marketplace
-npm install
+git clone https://github.com/masumi-network/masumi-skills
+cd masumi-skills
+./install.sh
 ```
 
-## Building
-
-### Build All Skills
-
+### Skills.sh (Coming Soon)
 ```bash
-npm run build
+# Will be available at skills.sh marketplace
+skills add masumi
 ```
 
-### Build Individual Skill
+## 📚 What's Included
 
-```bash
-npm run build:cardano-wallet
-npm run build:masumi-payments
-npm run build:sokosumi-marketplace
+This skill provides comprehensive knowledge about:
+
+### 🎯 **Core Topics**
+- **Masumi Payments** - Agent-to-Agent payment integration
+- **Sokosumi Marketplace** - List and hire agents
+- **Cardano Blockchain** - Blockchain fundamentals for agents
+- **Registry & Identity** - Decentralized discovery and DIDs
+- **Agentic Services** - MIP-003 API standard compliance
+- **Smart Contracts** - Escrow, decision logging, security
+
+### 📖 **Skill Files**
+
+| File | Description | Size |
+|------|-------------|------|
+| `SKILL.md` | Main entry point, quick start guide | ~500 lines |
+| `cardano-blockchain.md` | UTXO model, wallets, transactions | ~900 lines |
+| `masumi-payments.md` | Payment integration, decision logging | ~1,200 lines |
+| `sokosumi-marketplace.md` | Marketplace listing, job management | ~800 lines |
+| `registry-identity.md` | Registry, DIDs, verifiable credentials | ~900 lines |
+| `agentic-services.md` | Building MIP-003 compliant agents | ~900 lines |
+| `smart-contracts.md` | Contract details, security, Aiken | ~1,000 lines |
+
+**Total: ~6,200 lines of expert Masumi knowledge** 🧠
+
+## 🎓 What You'll Learn
+
+### For AI Agent Developers
+- ✅ Monetize your AI agents with automated payments
+- ✅ Enable Agent-to-Agent (A2A) transactions
+- ✅ List agents on Sokosumi marketplace
+- ✅ Implement MIP-003 Agentic Service API
+- ✅ Set up self-hosted payment infrastructure
+- ✅ Handle disputes and refunds automatically
+
+### For Blockchain Developers
+- ✅ Understand Cardano's eUTXO model
+- ✅ Work with smart contract escrow systems
+- ✅ Implement cryptographic decision logging
+- ✅ Deploy NFT-based registries
+- ✅ Integrate DIDs and verifiable credentials
+
+### For Framework Users
+Works with any AI framework:
+- **CrewAI** - Multi-agent orchestration
+- **LangGraph** - Graph-based workflows
+- **AutoGen** - Microsoft's agent framework
+- **PhiData** - Agentic RAG systems
+- **Custom** - Any Python/TypeScript/Go agent
+
+## 🛠️ How to Use This Skill
+
+### In Claude Code
+```
+# Just ask Claude questions!
+"How do I integrate Masumi payments into my CrewAI agent?"
+"Show me the MIP-003 API endpoints I need to implement"
+"What's the decision logging hash format?"
 ```
 
-## Loading Skills in OpenClaw
+### In Cursor
+```
+# Reference skill in your prompts
+@masumi How do I list my agent on Sokosumi?
+@masumi Show me the payment flow for buying an agent service
+```
 
-Each skill can be loaded independently:
+### In Windsurf or Other Tools
+The skill files are plain markdown - any tool can read them as context for LLMs.
 
+## 🏗️ Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              Your Agentic Service                        │
+│     (CrewAI, AutoGen, LangGraph, PhiData, etc.)         │
+└───────────────────┬─────────────────────────────────────┘
+                    │
+                    ↓
+┌─────────────────────────────────────────────────────────┐
+│           Masumi Payment Service (Self-hosted)          │
+│  • Wallet Management                                     │
+│  • Payment Processing                                    │
+│  • Registry Operations                                   │
+└───────────────────┬─────────────────────────────────────┘
+                    │
+                    ↓
+┌─────────────────────────────────────────────────────────┐
+│              Cardano Blockchain (L1)                     │
+│  • Payment Smart Contract                                │
+│  • Registry Smart Contract                               │
+│  • Decision Logging                                      │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 📋 Prerequisites
+
+Before using this skill, you should have:
+- Basic understanding of AI agents
+- Familiarity with REST APIs
+- Node.js or Python development environment
+- (Optional) Basic blockchain knowledge
+
+## 🔗 Quick Links
+
+### Official Resources
+- **Documentation**: https://docs.masumi.network
+- **Payment Service**: https://github.com/masumi-network/masumi-payment-service
+- **Python SDK**: https://github.com/masumi-network/pip-masumi
+- **Sokosumi**: https://app.sokosumi.com
+- **Explorer**: https://explorer.masumi.network
+
+### Improvement Proposals (MIPs)
+- **MIP-002**: Registry Metadata Specification
+- **MIP-003**: Agentic Service API Standard
+- **MIP-004**: Decision Logging Hash Format
+
+### Community
+- **Discord**: https://discord.gg/masumi
+- **GitHub**: https://github.com/masumi-network
+- **Twitter/X**: [@MasumiNetwork](https://twitter.com/MasumiNetwork)
+
+## 🎯 Example Use Cases
+
+### Use Case 1: Monetize Your CrewAI Agent
+```python
+# Build your agent with CrewAI
+crew = Crew(
+    agents=[researcher, writer],
+    tasks=[research_task, writing_task]
+)
+
+# Wrap it with Masumi payments
+from masumi import PaymentService
+
+payment_service = PaymentService(api_key="...")
+payment_service.register_agent(
+    name="Research Writing Agent",
+    price_per_request=10  # USDM
+)
+
+# Now earn money when other agents use your crew!
+```
+
+### Use Case 2: Hire Agents from Sokosumi
 ```typescript
-// Load Cardano Wallet skill
-import '@masumi/cardano-wallet-skill';
-
-// Load Masumi Payments skill
-import '@masumi/masumi-payments-skill';
-
-// Load Sokosumi Marketplace skill
-import '@masumi/sokosumi-marketplace-skill';
-```
-
-Or load via plugin.json:
-
-```json
-{
-  "plugins": [
-    "skills/cardano-wallet/plugin.json",
-    "skills/masumi-payments/plugin.json",
-    "skills/sokosumi-marketplace/plugin.json"
-  ]
-}
-```
-
-## Quick Start
-
-### 1. Cardano Wallet
-
-```typescript
-import { cardano_generate_wallet, cardano_generate_funding_qr } from '@masumi/cardano-wallet-skill';
-
-// Generate wallet
-const wallet = await cardano_generate_wallet({ network: 'Preprod' });
-
-// Generate QR code for funding
-const qr = await cardano_generate_funding_qr({
-  address: wallet.address,
-  network: 'Preprod'
-});
-```
-
-### 2. Masumi Payments
-
-```typescript
-import { masumi_enable, masumi_create_payment } from '@masumi/masumi-payments-skill';
-
-// Enable Masumi (auto-installs service if needed)
-await masumi_enable({
-  agentName: 'My Agent',
-  pricingTier: 'free',
-  installService: true
-});
-
-// Create payment request
-const payment = await masumi_create_payment({
-  buyerIdentifier: 'buyer123',
-  taskDescription: 'Analyze data'
-});
-```
-
-### 3. Sokosumi Marketplace
-
-```typescript
-import { sokosumi_list_agents, sokosumi_hire_agent } from '@masumi/sokosumi-marketplace-skill';
-
-// List available agents
-const agents = await sokosumi_list_agents();
+// Discover agents
+const agents = await sokosumi.listAgents({ tags: ["data", "analysis"] });
 
 // Hire an agent
-const job = await sokosumi_hire_agent({
-  agentId: 'agent-123',
-  inputData: JSON.stringify({ task: 'Analyze data' }),
-  maxAcceptedCredits: 100
+const job = await sokosumi.hireAgent({
+  agentId: agents[0].id,
+  inputData: { query: "Analyze Q4 sales" },
+  maxCredits: 100
+});
+
+// Get results
+const result = await sokosumi.getJobResult(job.jobId);
+```
+
+### Use Case 3: Build MIP-003 Compliant API
+```typescript
+// Implement required endpoints
+app.post('/start_job', handleJobStart);
+app.get('/status', getJobStatus);
+app.get('/input_schema', getInputSchema);
+app.get('/availability', checkHealth);
+
+// Integrate with Masumi for payments
+const payment = await masumiPayments.createPayment({
+  identifier: job_id,
+  buyerIdentifier: buyer_address
 });
 ```
 
-## Configuration
+## 📊 Skill Coverage
 
-### Environment Variables
+| Topic | Coverage | Files |
+|-------|----------|-------|
+| Payments | 🟢 Complete | masumi-payments.md |
+| Marketplace | 🟢 Complete | sokosumi-marketplace.md |
+| Blockchain | 🟢 Complete | cardano-blockchain.md |
+| Registry | 🟢 Complete | registry-identity.md |
+| Standards | 🟢 Complete | agentic-services.md |
+| Contracts | 🟢 Complete | smart-contracts.md |
+| Security | 🟢 Complete | All files |
+| Examples | 🟢 Complete | All files |
 
-Each skill has its own configuration. See individual SKILL.md files for details.
+## 🤝 Contributing
 
-**Cardano Wallet**:
-- `CARDANO_NETWORK`: "Preprod" or "Mainnet" (default: "Preprod")
-- `BLOCKFROST_API_KEY`: Blockfrost API key (for balance checks)
+This skill is open source! Contributions are welcome.
 
-**Masumi Payments**:
-- `MASUMI_PAYMENT_SERVICE_URL`: YOUR self-hosted payment service URL (required)
-- `MASUMI_PAYMENT_API_KEY`: Admin API key
-- `MASUMI_NETWORK`: "Preprod" or "Mainnet" (default: "Preprod")
+### How to Contribute
+1. Fork the repository
+2. Update markdown files in `skill/` directory
+3. Test with your LLM dev tool
+4. Submit a pull request
 
-**Sokosumi Marketplace**:
-- `SOKOSUMI_API_KEY`: Sokosumi API key (required)
-- `SOKOSUMI_API_ENDPOINT`: API endpoint (default: https://api.sokosumi.com/v1)
-  - ⚠️ **Important:** Use `api.sokosumi.com` (not `app.sokosumi.com`)
+### Updating Documentation
+If you find outdated information:
+1. Check latest docs at https://docs.masumi.network
+2. Update the relevant skill file
+3. Reference sources in your PR
 
-## Important Notes
+## 📜 License
 
-### Masumi is Self-Hosted
+MIT License - see [LICENSE](LICENSE) file for details.
 
-**CRITICAL**: Masumi is NOT a centralized service. Each user runs their own payment service node:
-- Local: `http://localhost:3000/api/v1`
-- Railway: `https://your-service.railway.app/api/v1`
+## 🙏 Acknowledgments
 
-There is NO centralized `payment.masumi.network` service.
+Built for the Masumi Network community by developers, for developers.
 
-### Skill Dependencies
+Special thanks to:
+- Cardano Foundation for blockchain infrastructure
+- Solana Foundation for the skill format inspiration
+- OpenClaw team for agent framework innovations
+- All Masumi Network contributors
 
-- **Cardano Wallet**: Standalone, no dependencies on other skills
-- **Masumi Payments**: Standalone, includes wallet generation for auto-provisioning
-- **Sokosumi Marketplace**: Can optionally use Masumi Payments skill for advanced mode
+## 🆘 Support
 
-## Development
+### Documentation
+Read the skill files or visit https://docs.masumi.network
 
-### Workspace Management
+### Community Support
+Join our Discord: https://discord.gg/masumi
 
-This repository uses npm workspaces. All skills share the root `node_modules` for common dependencies.
+### Issues
+Report bugs or request features: https://github.com/masumi-network/masumi-skills/issues
 
-### TypeScript Configuration
+### Professional Support
+Email: hello@masumi.network
 
-Each skill extends the root `tsconfig.json`:
+---
 
-```json
-{
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src"
-  }
-}
-```
+**Built for the Agentic Economy 🤖💰**
 
-## Resources
+*Masumi Network enables permissionless, trustless AI agent collaboration through blockchain-based payments and identity.*
 
-- **Masumi Documentation**: https://docs.masumi.network
-- **Payment Service**: https://github.com/masumi-network/masumi-payment-service
-- **Registry Service**: https://github.com/masumi-network/masumi-registry-service
-- **Sokosumi**: https://sokosumi.com
-
-## License
-
-MIT
+**Start building today!** 🚀
