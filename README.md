@@ -9,10 +9,12 @@ A comprehensive skill for LLM-powered development tools (Claude Code, Cursor, Wi
 
 ## 🚀 Quick Install
 
-### NPX (Recommended)
+### Via skills.sh (Recommended)
 ```bash
-npx skills add https://github.com/masumi-network/masumi-skills
+npx skills add masumi-network/masumi-skills
 ```
+
+The skill will be automatically added to your AI coding assistant and appear on the [skills.sh leaderboard](https://skills.sh) based on installation count.
 
 ### Manual Installation
 ```bash
@@ -21,11 +23,7 @@ cd masumi-skills
 ./install.sh
 ```
 
-### Skills.sh (Coming Soon)
-```bash
-# Will be available at skills.sh marketplace
-skills add masumi
-```
+Works with: Claude Code, Cursor, Windsurf, Cline, Aider, Codex, and any AI tool that reads markdown skills.
 
 ## 📚 What's Included
 
@@ -235,6 +233,17 @@ This skill is open source! Contributions are welcome.
 2. Update markdown files in `skill/` directory
 3. Test with your LLM dev tool
 4. Submit a pull request
+
+### Skill Format Requirements
+The `skill/SKILL.md` file must include YAML frontmatter for skills.sh compatibility:
+
+```yaml
+---
+name: masumi
+description: Expert guidance for building AI agents with payments...
+user-invocable: true
+---
+```
 
 ### Updating Documentation
 If you find outdated information:
