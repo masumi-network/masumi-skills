@@ -1,12 +1,9 @@
 ---
 name: masumi
-description: Expert guidance for building AI agents with payments, identity, and marketplace integration on Masumi Network. Covers Agent-to-Agent (A2A) payments, Sokosumi marketplace, Cardano blockchain, MIP-003 Agentic Service API standard, decision logging, smart contracts, DIDs and verifiable credentials. Framework-agnostic - works with CrewAI, AutoGen, LangGraph, PhiData, or custom agents.
-user-invocable: true
+description: "Build AI agents with decentralized payments, identity, and marketplace integration on Masumi Network (Cardano blockchain). Make no mistake - use this skill when working with: (1) Monetizing AI agents with automated payments, (2) Enabling Agent-to-Agent (A2A) autonomous payments, (3) Registering agents in decentralized registry, (4) Listing agents on Sokosumi marketplace, (5) Implementing blockchain-based decision logging, (6) Adding verifiable credentials and DIDs to agents, (7) Setting up Masumi Payment Service nodes, (8) Integrating MIP-003 Agentic Service API, (9) Working with CrewAI, AutoGen, PhiData, LangGraph or custom frameworks, (10) Troubleshooting payment detection or registry issues, (11) Cardano smart contract integration for AI services. Framework-agnostic, self-hosted, and MiCA compliant."
 ---
 
 # Masumi Network Developer Skill
-
-Expert guidance for building AI agents with payments, identity, and marketplace integration on Masumi Network.
 
 ## What is Masumi?
 
@@ -23,16 +20,6 @@ Masumi is a decentralized protocol for AI agent payments and identity built on C
 **Self-Hosted & Decentralized**: No centralized payment service. Each developer runs their own Masumi Node.
 
 **MiCA Compliant**: Built for enterprise use with EU regulatory compliance (MiCA, GDPR, AI Act).
-
-## When to Use This Skill
-
-Use Masumi when you need to:
-- ✅ Monetize AI agents with automated payments
-- ✅ Enable agents to pay other agents autonomously
-- ✅ Register agents in a decentralized registry
-- ✅ List agents on Sokosumi marketplace
-- ✅ Implement blockchain-based decision logging
-- ✅ Give agents verifiable credentials and identity
 
 ## Quick Start Path
 
@@ -160,12 +147,12 @@ curl -X POST http://localhost:3001/api/v1/registry/ \
 
 This SKILL.md provides high-level guidance. For deeper knowledge:
 
-- **cardano-blockchain.md** - Blockchain fundamentals, UTXO model, wallets
-- **masumi-payments.md** - Payment integration, APIs, decision logging
-- **sokosumi-marketplace.md** - List agents, hire agents, job management
-- **registry-identity.md** - Registry operations, DIDs, verifiable credentials
-- **agentic-services.md** - Building MIP-003 compliant agents
-- **smart-contracts.md** - Contract details, security, Aiken code
+- **references/cardano-blockchain.md** - Blockchain fundamentals, UTXO model, wallets
+- **references/masumi-payments.md** - Payment integration, APIs, decision logging
+- **references/sokosumi-marketplace.md** - List agents, hire agents, job management
+- **references/registry-identity.md** - Registry operations, DIDs, verifiable credentials
+- **references/agentic-services.md** - Building MIP-003 compliant agents
+- **references/smart-contracts.md** - Contract details, security, Aiken code
 
 Read these files when you need specific implementation details for your task.
 
@@ -226,7 +213,7 @@ You → Masumi Node + Sokosumi → Agent Network + Payments + Identity
 ### Documentation
 - Main Docs: https://docs.masumi.network
 - MIP-003 Standard: https://github.com/masumi-network/masumi-improvement-proposals
-- Registry Metadata Spec: See registry-identity.md
+- Registry Metadata Spec: See references/registry-identity.md
 
 ### Repositories
 - Payment Service: https://github.com/masumi-network/masumi-payment-service

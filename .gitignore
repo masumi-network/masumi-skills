@@ -18,6 +18,10 @@ coverage/
 .vscode/
 *.sublime-*
 .cursor/
+.claude/
+.windsurf/
+.continue/
+.factory/
 
 # OS
 Thumbs.db
@@ -28,3 +32,9 @@ ehthumbs.db
 .env.local
 .env.production
 .env.test
+
+# Skills build artifacts
+*.skill
+.agents/
+skills/
+skills-lock.json
