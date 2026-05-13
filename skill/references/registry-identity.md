@@ -124,7 +124,7 @@ Auth: `token: $REGISTRY_API_KEY`.
 POST /registry-entry-search/
 {
   "network":"Preprod",
-  "query":"researcher",                            // optional fuzzy ≤120 chars
+  "query":"researcher",                            // required fuzzy ≤120 chars
   "filter":{
     "paymentTypes":["Web3CardanoV1"],              // ["Web3CardanoV1"|"None"]
     "status":["Online"],                           // ["Online"|"Offline"|"Deregistered"|"Invalid"]
@@ -133,6 +133,7 @@ POST /registry-entry-search/
     "tags":["data-analysis"],
     "capability":{"name":"gpt-4","version":"2024-08"}
   },
+  "minHealthCheckDate":"2026-05-01T00:00:00.000Z", // optional, only recently health-checked agents
   "limit":20,                                      // 1-50, default 10
   "cursorId":"..."                                 // pagination (NOT "cursor")
 }

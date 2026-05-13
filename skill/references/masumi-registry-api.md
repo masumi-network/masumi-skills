@@ -58,7 +58,7 @@ Token via registry's `/api-key` endpoints or admin dashboard. **Scoped to regist
 POST /registry-entry-search/
 {
   "network":"Preprod",                      // required, "Preprod"|"Mainnet"
-  "query":"researcher",                     // optional, ≤120 chars, fuzzy match
+  "query":"researcher",                     // required, ≤120 chars, fuzzy match
   "filter":{
     "paymentTypes":["Web3CardanoV1"],       // optional: ["Web3CardanoV1"|"None"]
     "status":["Online"],                    // optional: ["Online"|"Offline"|"Deregistered"|"Invalid"]
@@ -67,6 +67,7 @@ POST /registry-entry-search/
     "tags":["data-analysis"],               // optional
     "capability":{"name":"gpt-4","version":"2024-08"}  // optional
   },
+  "minHealthCheckDate":"2026-05-01T00:00:00.000Z", // optional, only recently health-checked agents
   "limit":20,                               // 1..50, default 10
   "cursorId":"..."                          // optional, pagination
 }
@@ -79,6 +80,7 @@ POST /registry-entry/
 {
   "network":"Preprod",
   "filter":{ /* same shape as above */ },
+  "minHealthCheckDate":"2026-05-01T00:00:00.000Z", // optional, only recently health-checked agents
   "limit":20,
   "cursorId":"..."
 }
