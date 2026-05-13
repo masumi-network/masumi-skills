@@ -43,6 +43,12 @@ REGISTRY_API_KEY=
 
 # Network selector for node ops
 NETWORK=Preprod                         # or Mainnet
+
+# Kodosumi runtime (optional)
+KODOSUMI_URL=http://localhost:3370
+KODOSUMI_API_KEY=
+# KODOSUMI_USERNAME=admin
+# KODOSUMI_PASSWORD=
 ```
 
 Template: `.env.example` at skill root.
@@ -129,16 +135,21 @@ curl -sS "$SOKOSUMI_API_URL/agents/$AGENT_ID/input-schema" -H "Authorization: Be
 ```
 
 ### Submit job + poll until terminal
+Both `inputSchema` and `inputData` are required. `inputSchema.input_data[].data` holds form metadata (placeholder, description, options), not user value.
+
 ```python
 import os, time, requests
 API, KEY = os.environ["SOKOSUMI_API_URL"], os.environ["SOKOSUMI_API_KEY"]
 AGENT = "agent_abc123"
 H = {"Authorization": f"Bearer {KEY}", "Content-Type": "application/json"}
 
-body = {"inputSchema": {"input_data": [
-    {"id":"topic","type":"string","name":"Topic",
-     "data":{"value":"decentralized AI agent payments"}}
-]}}
+body = {
+    "inputSchema": {"input_data": [
+        {"id":"topic","type":"string","name":"Topic",
+         "data":{"placeholder":"e.g. AI agent payments","description":"What to research"}}
+    ]},
+    "inputData": {"topic":"decentralized AI agent payments"},
+}
 r = requests.post(f"{API}/agents/{AGENT}/jobs", headers=H, json=body, timeout=30)
 r.raise_for_status()
 job_id = r.json()["data"]["id"]
@@ -207,8 +218,9 @@ curl -sS "$PAYMENT_SERVICE_URL/wallet?network=$NETWORK" \
 ### Look up payment by blockchainIdentifier
 ```bash
 BLOCKCHAIN_ID=...
-curl -sS "$PAYMENT_SERVICE_URL/payment?blockchainIdentifier=$BLOCKCHAIN_ID&network=$NETWORK" \
-  -H "token: $PAYMENT_API_KEY" | jq
+curl -sS -X POST "$PAYMENT_SERVICE_URL/payment/resolve-blockchain-identifier" \
+  -H "token: $PAYMENT_API_KEY" -H "Content-Type: application/json" \
+  -d '{"network":"'"$NETWORK"'","blockchainIdentifier":"'"$BLOCKCHAIN_ID"'"}' | jq
 ```
 
 ### Submit job result (seller)
@@ -266,7 +278,8 @@ Base: `$REGISTRY_SERVICE_URL`. Auth: `token: $REGISTRY_API_KEY`.
 
 ### Search
 
-Body: `network` (Preprod|Mainnet), optional `query` (fuzzy ≤120 chars), `filter` (`paymentTypes`, `status`, `policyId`, `assetIdentifier`, `tags`, `capability`), pagination = `limit` (1-50, default 10) + `cursorId`.
+Required: `network` (Preprod|Mainnet), `query` (fuzzy ≤120 chars).
+Optional: `filter` (`paymentTypes`, `status`, `policyId`, `assetIdentifier`, `tags`, `capability`), `minHealthCheckDate`, `limit` (1-50, default 10), `cursorId`.
 
 ```bash
 curl -sS -X POST "$REGISTRY_SERVICE_URL/registry-entry-search/" \
@@ -275,6 +288,7 @@ curl -sS -X POST "$REGISTRY_SERVICE_URL/registry-entry-search/" \
     "network":"Preprod",
     "query":"research",
     "filter":{"tags":["data-analysis"],"status":["Online"]},
+    "minHealthCheckDate":"2026-05-01T00:00:00.000Z",
     "limit":20
   }' | jq
 ```
@@ -309,11 +323,13 @@ curl -sS -X POST "$REGISTRY_SERVICE_URL/registry-entry-refresh/" \
 
 **Allowed:**
 - Read keys from `.env` in CWD.
-- Hit live endpoints to **read** state.
-- Submit **preprod/testnet** jobs + registry ops.
+- Hit live endpoints to **read** state only (`GET` / lookup calls).
 
 **Ask first:**
-- Submit job that costs credits.
+- Any `POST`, `PUT`, `PATCH`, or `DELETE`, including preprod/testnet.
+- Submit job, satisfy job input, request refund, or change sharing/workspace.
+- Registry ops: register, refresh, deregister, mint, burn.
+- Payment/purchase ops that create, authorize, submit, refund, or move funds.
 - Any call against `MAINNET` / production.
 - Delete, deregister, modify resource.
 - Generate, rotate, revoke key.
