@@ -255,19 +255,43 @@ Built-in File tools (save results)
 - `masumi-payments.md` for payment integration
 - `sokosumi-marketplace.md` for listing
 
-## When to Load Reference Files
+## When to Load Each Reference
 
-| Your Task | Load This Reference |
-|-----------|-------------------|
-| Setting up payments | `masumi-payments.md` |
-| Registering agent | `registry-identity.md` |
-| Understanding smart contracts | `smart-contracts.md` |
-| Cardano blockchain concepts | `cardano-blockchain.md` |
-| Listing on marketplace | `sokosumi-marketplace.md` |
-| Deploying at scale | `kodosumi-runtime.md` |
-| Building MIP-003 agent | `agentic-services.md` |
+| Task | Load |
+|---|---|
+| Debug live API (any service) | `api-debug-recipes.md` |
+| Sokosumi endpoint shape | `sokosumi-api-reference.md` |
+| Masumi Registry endpoint | `masumi-registry-api.md` |
+| Masumi Payment Service setup | `masumi-payments.md` |
+| Sokosumi concepts / listing | `sokosumi-marketplace.md` |
+| Registry concepts (DIDs, NFTs) | `registry-identity.md` |
+| Smart contracts | `smart-contracts.md` |
+| Cardano blockchain basics | `cardano-blockchain.md` |
+| Deploy at scale | `kodosumi-runtime.md` |
+| Build MIP-003 agent | `agentic-services.md` |
 
-**Load only what you need to minimize token usage.**
+Load only what current task needs.
+
+## Live API Endpoints
+
+| Service | Preprod | Mainnet / Managed | Auth |
+|---|---|---|---|
+| Sokosumi | `https://api.preprod.sokosumi.com/v1` | `https://api.sokosumi.com/v1` | `Authorization: Bearer $SOKOSUMI_API_KEY` |
+| Masumi Payment | self-host + `network:"Preprod"` | `https://payment.masumi.network/api/v1` (or self-host) | `token: $PAYMENT_API_KEY` |
+| Masumi Registry | same host + `network:"Preprod"` | `https://registry.masumi.network/api/v1` | `token: $REGISTRY_API_KEY` |
+
+Snippets read from `.env`. See `.env.example`. **Read `api-debug-recipes.md` before touching live APIs.**
+
+## Safe API-Key Handling (mandatory)
+
+1. Keys in `.env` only. No CLI args, no chat paste.
+2. Never `print`/`echo`/`log` a key. Presence check only (`"SOKOSUMI_API_KEY: set ✓"`).
+3. `.gitignore` must exclude `.env*` before anything else.
+4. Missing key → refuse + name the var + where to get it.
+5. Preprod ≠ Mainnet. Separate keys. Ask before mainnet.
+6. Ask before mutating: costs credits, deregisters, deletes, moves funds.
+
+Full rules + loaders (Python `dotenv`, Node `dotenv`, shell `set -a; . ./.env; set +a`) → `api-debug-recipes.md`.
 
 ## Domain-Specific Intelligence
 
@@ -461,36 +485,29 @@ Do you need trustless escrow?
 
 **Token-Efficient Loading**: This SKILL.md provides high-level guidance. Load reference files only when needed for specific tasks.
 
-### Platform-Specific References
+### Reference Files
 
-**Masumi (Payments & Identity):**
-- `references/masumi-payments.md` - Payment flows, APIs, decision logging, wallet management
-- `references/registry-identity.md` - Registry operations, DIDs, verifiable credentials, NFT metadata
-- `references/smart-contracts.md` - Payment/Registry contracts, security, Aiken code
-- `references/cardano-blockchain.md` - Blockchain fundamentals, UTXO model, transaction fees
+**Cross-cutting (load first for live APIs):**
+- `references/api-debug-recipes.md` — Safe `.env` + curl/Python recipes, all 3 services.
+- `references/sokosumi-api-reference.md` — Full Sokosumi v1 endpoint catalog.
+- `references/masumi-registry-api.md` — Registry Service endpoints.
+
+**Masumi (Payments + Identity):**
+- `references/masumi-payments.md` — Payment Service flows, endpoints, decision logging, wallets.
+- `references/registry-identity.md` — Registry concepts: DIDs, VCs, NFT metadata.
+- `references/smart-contracts.md` — Payment/Registry contracts, security, Aiken.
+- `references/cardano-blockchain.md` — Blockchain basics, UTXO, fees.
 
 **Sokosumi (Marketplace):**
-- `references/sokosumi-marketplace.md` - Listing agents, browsing marketplace, job management, MCP integration
+- `references/sokosumi-marketplace.md` — Listing, browsing, jobs, MCP.
 
 **Kodosumi (Runtime):**
-- `references/kodosumi-runtime.md` - Flow deployment, lifecycle management, Ray cluster configuration
+- `references/kodosumi-runtime.md` — Flow deploy, lifecycle, Ray cluster.
 
 **Cross-Platform:**
-- `references/agentic-services.md` - MIP-003 API standard, framework integration patterns
+- `references/agentic-services.md` — MIP-003 API standard, framework patterns.
 
-### When to Load Each Reference
-
-| Your Task | Load This Reference |
-|-----------|-------------------|
-| Set up payments | `masumi-payments.md` |
-| Register agent | `registry-identity.md` |
-| Understand smart contracts | `smart-contracts.md` |
-| Cardano blockchain concepts | `cardano-blockchain.md` |
-| List on marketplace | `sokosumi-marketplace.md` |
-| Deploy at scale | `kodosumi-runtime.md` |
-| Build MIP-003 compatible agent | `agentic-services.md` |
-
-**Only load references relevant to the current task to minimize token usage.**
+Load only what task needs.
 
 ## Best Practices
 

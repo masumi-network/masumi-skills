@@ -28,10 +28,8 @@ Thumbs.db
 ehthumbs.db
 
 # Environment
-.env
-.env.local
-.env.production
-.env.test
+.env*
+!.env.example
 
 # Skills build artifacts
 *.skill

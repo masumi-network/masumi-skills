@@ -31,15 +31,21 @@ The skill provides comprehensive guidance for the **complete Masumi ecosystem**:
 2. **Sokosumi** - Agent marketplace for discovery and hiring
 3. **Kodosumi** - Scalable runtime environment (Ray-based execution)
 
-### 8 Comprehensive Reference Guides
+### Reference Guides (v2.1 — refreshed for current live APIs)
 
-- **Masumi Payments** - Payment flows, wallets, decision logging
-- **Registry & Identity** - On-chain discovery, DIDs, verifiable credentials
-- **Smart Contracts** - Escrow, payment/registry contracts, security
-- **Cardano Blockchain** - UTXO model, transactions, fees
-- **Agentic Services** - MIP-003 API standard implementation
-- **Sokosumi Marketplace** - Listing, browsing, job management, MCP integration
-- **Kodosumi Runtime** - Deployment, scaling, lifecycle management (NEW)
+**Cross-cutting / API debugging:**
+- **API Debug Recipes** (NEW) — Safe `.env` handling + runnable curl/Python recipes for every service
+- **Sokosumi API Reference** (NEW) — Full v1 endpoint catalog from the live OpenAPI spec
+- **Masumi Registry API** (NEW) — Registry Service endpoints (separate from Payment Service)
+
+**Per platform:**
+- **Masumi Payments** — Payment Service endpoints, flows, decision logging
+- **Registry & Identity** — On-chain discovery concepts, DIDs, verifiable credentials
+- **Smart Contracts** — Escrow, payment/registry contracts, security
+- **Cardano Blockchain** — UTXO model, transactions, fees
+- **Agentic Services** — MIP-003 API standard implementation
+- **Sokosumi Marketplace** — Listing concepts, MCP integration
+- **Kodosumi Runtime** — Deployment, scaling, lifecycle management
 
 ### Token-Efficient Architecture
 
@@ -54,17 +60,30 @@ The skill uses **progressive disclosure** - load only what you need:
 
 ```
 masumi-skills/
+├── .env.example                              # Variable template (copy to .env)
 ├── skill/
-│   ├── SKILL.md                              # Main skill guide (architecture & workflows)
+│   ├── SKILL.md                              # Main skill guide
 │   └── references/
-│       ├── masumi-payments.md                # Payment integration deep dive
-│       ├── registry-identity.md              # Registry & DIDs
+│       ├── api-debug-recipes.md              # (NEW) Safe .env + curl/Python recipes
+│       ├── sokosumi-api-reference.md         # (NEW) Full Sokosumi v1 endpoint surface
+│       ├── masumi-registry-api.md            # (NEW) Registry Service endpoints
+│       ├── masumi-payments.md                # Payment Service deep dive
+│       ├── registry-identity.md              # Registry concepts: DIDs, NFTs
 │       ├── smart-contracts.md                # Blockchain contracts
 │       ├── cardano-blockchain.md             # Cardano fundamentals
 │       ├── agentic-services.md               # MIP-003 API standard
-│       ├── sokosumi-marketplace.md           # Marketplace integration
-│       └── kodosumi-runtime.md               # Scalable deployment (NEW)
+│       ├── sokosumi-marketplace.md           # Marketplace concepts
+│       └── kodosumi-runtime.md               # Scalable deployment
 └── README.md                                 # This file
+```
+
+## Safe API-Key Handling
+
+When the skill helps an agent debug live APIs, it reads keys **only** from a local `.env` file. It will never prompt you to paste a key into chat, never log a key, and never commit one. Mandatory rules are in `skill/references/api-debug-recipes.md`. To get started:
+
+```bash
+cp .env.example .env       # fill in only the keys you actually need
+# .env* is gitignored; .env.example stays tracked
 ```
 
 **Also available:** Entry point at https://masumi.network/skill.md
