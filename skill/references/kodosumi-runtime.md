@@ -1,215 +1,134 @@
-# Kodosumi Runtime - Scalable Agent Deployment
+# Kodosumi Runtime
 
-Complete guide to deploying and managing AI agents at scale using Kodosumi, the Ray-based distributed execution runtime.
+Python-first runtime for deploying agents at scale. Built on Ray.
 
-## Overview
+Marketplace concepts → [sokosumi-marketplace.md](sokosumi-marketplace.md).
+MIP-003 agent shape → [agentic-services.md](agentic-services.md).
+Payment integration → [masumi-payments.md](masumi-payments.md).
 
-**Kodosumi** is a Python-first runtime environment for deploying and executing agentic services at scale. Built on [Ray](https://ray.io), it provides distributed computing capabilities with managed lifecycle, event streaming, and seamless integration with the Masumi ecosystem.
+> Kodosumi-specific APIs below come from the official Kodosumi docs (https://docs.kodosumi.io). They are **not** independently verified against a live OpenAPI spec inside this skill — if a call fails, consult the live docs first.
 
-### What is Kodosumi?
+---
 
-Kodosumi enables:
-- **Scalable Deployment** - Deploy agents across distributed compute clusters
-- **Lifecycle Management** - Automated flow execution from start to finish/error
-- **Event Streaming** - Real-time job tracking and result aggregation
-- **Access Control** - Built-in authentication and authorization
-- **Framework Agnostic** - Works with any Python-based AI framework
+## What Kodosumi Does
 
 ```
-┌──────────────────────────────────────────────────────┐
-│               Your Agentic Service                    │
-│    (CrewAI, AutoGen, LangGraph, Custom Python)       │
-└────────────────────┬─────────────────────────────────┘
-                     │
-                     │ Deployed as Flow
-                     ▼
-┌──────────────────────────────────────────────────────┐
-│                  Kodosumi Layer                       │
-│  ┌────────────────────────────────────────────────┐  │
-│  │  Access Control • Flow Control • Lifecycle     │  │
-│  │  Event Streaming • Result Aggregation          │  │
-│  └────────────────────────────────────────────────┘  │
-└────────────────────┬─────────────────────────────────┘
-                     │
-                     │ Executes on
-                     ▼
-┌──────────────────────────────────────────────────────┐
-│              Ray Distributed Cluster                  │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐     │
-│  │ Head Node  │  │  Worker 1  │  │  Worker N  │     │
-│  └────────────┘  └────────────┘  └────────────┘     │
-└──────────────────────────────────────────────────────┘
+Your agent (any Python framework)
+    ↓ deploy as Flow
+Kodosumi Layer (access control · lifecycle · event streams · result aggregation)
+    ↓ executes on
+Ray distributed cluster (head + workers)
 ```
 
-## Key Concepts
+Wins:
+- **Scale** — distributed across Ray workers, handles 100s+ concurrent jobs.
+- **Lifecycle** — automated state transitions (queued → running → finished/error).
+- **Events** — real-time stream per job.
+- **Auth** — built-in API key + roles.
+- **Framework-agnostic** — works with any Python AI framework.
 
-### Flow
-A **Flow** is your agentic service packaged for execution on Kodosumi. It consists of:
-- **Endpoint**: HTTP route that triggers the flow (e.g., `/my-agent`)
-- **Entrypoint**: Python callable that executes your agent logic
-- **Configuration**: Environment variables, dependencies, resource requirements
+---
 
-### Endpoint
-An **Endpoint** is the HTTP route that clients use to invoke your flow. Kodosumi exposes this via its API:
-```
-POST https://your-kodosumi-instance.com/api/v1/flows/my-agent
-```
+## Concepts
 
-### Entrypoint
-The **Entrypoint** is a Python function or method that Kodosumi calls to execute your flow:
-```python
-def my_agent_entrypoint(input_data: dict) -> dict:
-    # Your agent logic here
-    result = run_my_agent(input_data)
-    return result
-```
+| Term | Meaning |
+|---|---|
+| **Flow** | Your agent packaged for execution. Endpoint + entrypoint + config. |
+| **Endpoint** | HTTP route that triggers the flow (e.g. `/my-agent`). |
+| **Entrypoint** | Python callable (`module:function`) Kodosumi invokes. |
+| **Ray head + workers** | Distributed compute; head schedules, workers execute. |
+| **Spooler** | Event stream emitter; produces lifecycle events per job. |
 
-### Ray Head & Workers
-- **Ray Head Node**: Coordinates job scheduling and orchestration
-- **Ray Worker Nodes**: Execute the actual computation in parallel
-- Kodosumi manages the Ray cluster automatically
+---
 
-### Spooler & Event Stream
-- **Spooler**: Collects flow execution results and outputs
-- **Event Stream**: Real-time feed of execution events (starting, progress, finished, error)
-
-## Architecture
-
-Kodosumi consists of three main building blocks:
-
-1. **Your Service** - Any Python-based agentic application
-2. **Kodosumi** - Manages lifecycle, events, and API layer
-3. **Ray Cluster** - Distributed compute for execution at scale
-
-### Integration with Masumi Ecosystem
+## Ecosystem Position
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  Sokosumi Marketplace                                │
-│  (Agent Discovery & Job Management)                  │
-└────────────────┬────────────────────────────────────┘
-                 │
-                 │ Discovers & Invokes
-                 ▼
-┌─────────────────────────────────────────────────────┐
-│  Kodosumi Runtime                                    │
-│  (Scalable Execution)                                │
-└────────────────┬────────────────────────────────────┘
-                 │
-                 │ Handles Payments
-                 ▼
-┌─────────────────────────────────────────────────────┐
-│  Masumi Protocol                                     │
-│  (Blockchain Payments & Identity)                    │
-└─────────────────────────────────────────────────────┘
+Build → Deploy on Kodosumi → List on Sokosumi → Payments via Masumi
+        (this file)            (sokosumi-marketplace.md)   (masumi-payments.md)
 ```
 
-**Typical workflow:**
-1. Build agent with any framework
-2. Deploy as Flow on Kodosumi
-3. List on Sokosumi marketplace
-4. Masumi handles payments when agent is hired
+Use Kodosumi when:
+- You need >100 concurrent jobs.
+- Auto-scaling matters.
+- You want managed Ray ops.
 
-## Getting Started
+Skip Kodosumi when:
+- Single-process FastAPI on Railway/Fly is enough.
+- Your agent is bursty and small.
 
-### Installation
+---
 
-**Prerequisites:**
+## Install + Configure
+
+### Prereqs
 - Python 3.9+
-- Docker (optional, for containerized deployment)
-- PostgreSQL (for persistent storage)
+- Docker (optional)
+- PostgreSQL
 
-**Quick Install:**
+### Quick install
 ```bash
-# Clone Kodosumi repository
 git clone https://github.com/masumi-network/kodosumi
 cd kodosumi
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Set up configuration
 cp .env.example .env
-# Edit .env with your settings
-
-# Initialize database
 python scripts/init_db.py
-
-# Start Kodosumi
 python main.py
 ```
 
-**Docker Setup:**
+### Docker
 ```bash
-# Build and run with Docker Compose
-docker-compose up -d
-
-# Access dashboard at http://localhost:8000
+docker-compose up -d        # dashboard at http://localhost:8000
 ```
 
-### Configuration
-
-Key environment variables in `.env`:
-
+### `.env`
 ```bash
-# Ray Configuration
-RAY_HEAD_ADDRESS=auto  # or specific IP for existing cluster
+# Ray
+RAY_HEAD_ADDRESS=auto                # or "ip:port" to attach existing cluster
 RAY_NUM_CPUS=4
 RAY_NUM_GPUS=0
 
-# Kodosumi API
+# API
 API_HOST=0.0.0.0
 API_PORT=8000
-API_KEY=your-secret-api-key
+API_KEY=your-secret-api-key          # store in .env, NEVER inline
 
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/kodosumi
+# DB
+DATABASE_URL=postgresql://user:pass@localhost:5432/kodosumi
 
-# Logging
 LOG_LEVEL=INFO
 ```
 
-## Deploying Your Agent
+> `KODOSUMI_API_KEY` is **not** in the skill's standard env-var set (see [api-debug-recipes.md](api-debug-recipes.md)). If you build automation against Kodosumi, add it to your `.env` and follow the same safe-handling rules.
 
-### Step 1: Prepare Your Agent
+---
 
-Structure your agent as a Python module:
+## Deploy a Flow
+
+### 1. Structure your agent
 
 ```python
 # my_agent/agent.py
-from typing import Dict, Any
-
 class MyAgent:
     def __init__(self):
-        # Initialize your agent (load models, configs, etc.)
-        pass
+        pass                          # load models, configs
 
-    def run(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
-        # Your agent logic
-        result = self.process(input_data)
-        return {
-            "status": "success",
-            "output": result
-        }
+    def run(self, input_data: dict) -> dict:
+        return {"status":"success","output": self.process(input_data)}
 
     def process(self, data):
-        # Actual processing logic
         return f"Processed: {data}"
 
-# Entrypoint function for Kodosumi
 def entrypoint(input_data: dict) -> dict:
-    agent = MyAgent()
-    return agent.run(input_data)
+    return MyAgent().run(input_data)
 ```
 
-### Step 2: Create Deployment Configuration
-
-Create `kodosumi_config.yaml`:
+### 2. `kodosumi_config.yaml`
 
 ```yaml
 name: my-agent
 version: "1.0.0"
-description: "My AI agent deployed on Kodosumi"
+description: "My AI agent on Kodosumi"
 
 flow:
   endpoint: /my-agent
@@ -221,7 +140,7 @@ resources:
   gpu: 0
 
 environment:
-  OPENAI_API_KEY: ${OPENAI_API_KEY}
+  OPENAI_API_KEY: ${OPENAI_API_KEY}   # interpolated from your shell/env, NEVER literal
   MODEL_NAME: gpt-4
 
 dependencies:
@@ -230,36 +149,24 @@ dependencies:
   - pydantic>=2.0.0
 ```
 
-### Step 3: Deploy via CLI
+### 3. Deploy via CLI
 
 ```bash
-# Install Kodosumi CLI
 pip install kodosumi-cli
-
-# Login to your Kodosumi instance
-kodosumi login --url https://your-kodosumi.com --api-key YOUR_API_KEY
-
-# Deploy your flow
+kodosumi login --url https://your-kodosumi.com --api-key "$KODOSUMI_API_KEY"
 kodosumi deploy my_agent/
-
-# Verify deployment
 kodosumi flows list
-
-# Test your flow
-kodosumi flows invoke my-agent --data '{"task": "test"}'
+kodosumi flows invoke my-agent --data '{"task":"test"}'
 ```
 
-### Step 4: Deploy via Dashboard
+> Pass the API key from env (`"$KODOSUMI_API_KEY"`). Never paste it literally.
 
-1. Navigate to Kodosumi dashboard at `http://your-kodosumi.com`
-2. Click "Deploy New Flow"
-3. Upload your agent code and configuration
-4. Click "Deploy"
-5. Monitor deployment status in real-time
+### 4. Deploy via dashboard
+Open `http://your-kodosumi.com` → Deploy New Flow → upload code + config.
+
+---
 
 ## Flow Lifecycle
-
-Kodosumi manages the complete lifecycle of your flow:
 
 ```
 START → QUEUED → RUNNING → FINISHED
@@ -267,244 +174,152 @@ START → QUEUED → RUNNING → FINISHED
                   ERROR
 ```
 
-**Lifecycle States:**
-- **START**: Flow invocation received
-- **QUEUED**: Waiting for available worker
-- **RUNNING**: Executing on Ray worker
-- **FINISHED**: Completed successfully
-- **ERROR**: Failed with error details
+| State | When |
+|---|---|
+| `START` | Invocation received |
+| `QUEUED` | Waiting for worker |
+| `RUNNING` | Executing on Ray worker |
+| `FINISHED` | Completed successfully |
+| `ERROR` | Failed |
 
-### Monitoring Flow Execution
-
-**Via API:**
-```bash
-# Get flow status
-curl -X GET https://your-kodosumi.com/api/v1/flows/my-agent/jobs/job-123 \
-  -H "Authorization: Bearer YOUR_API_KEY"
-
-# Response
-{
-  "job_id": "job-123",
-  "flow_name": "my-agent",
-  "status": "RUNNING",
-  "created_at": "2025-03-09T10:00:00Z",
-  "events": [
-    {"timestamp": "2025-03-09T10:00:00Z", "event": "START"},
-    {"timestamp": "2025-03-09T10:00:01Z", "event": "QUEUED"},
-    {"timestamp": "2025-03-09T10:00:05Z", "event": "RUNNING"}
-  ]
-}
-```
-
-**Via Dashboard:**
-- Real-time job status updates
-- Event stream visualization
-- Error logs and debugging info
-
-## API Reference
-
-### Deploy Flow
-```http
-POST /api/v1/flows
-Authorization: Bearer {API_KEY}
-Content-Type: multipart/form-data
-
-{
-  "name": "my-agent",
-  "code": <file>,
-  "config": <kodosumi_config.yaml>
-}
-```
-
-### Invoke Flow
-```http
-POST /api/v1/flows/{flow_name}/invoke
-Authorization: Bearer {API_KEY}
-Content-Type: application/json
-
-{
-  "input_data": {
-    "task": "analyze data"
-  }
-}
-```
-
-### Get Flow Status
-```http
-GET /api/v1/flows/{flow_name}/jobs/{job_id}
-Authorization: Bearer {API_KEY}
-```
-
-### List All Flows
-```http
-GET /api/v1/flows
-Authorization: Bearer {API_KEY}
-```
-
-### Delete Flow
-```http
-DELETE /api/v1/flows/{flow_name}
-Authorization: Bearer {API_KEY}
-```
-
-## Advanced Features
-
-### File Upload & Processing
-
-Kodosumi supports file uploads for flows that need to process documents, images, etc.:
-
-```python
-def entrypoint(input_data: dict, files: list = None) -> dict:
-    if files:
-        for file in files:
-            # Process uploaded files
-            content = file.read()
-            # Your processing logic
-
-    return {"status": "success"}
-```
-
-**Invoke with files:**
-```bash
-curl -X POST https://your-kodosumi.com/api/v1/flows/my-agent/invoke \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -F "input_data={\"task\": \"analyze\"}" \
-  -F "file=@document.pdf"
-```
-
-### Resource Locks
-
-Prevent concurrent execution when needed:
-
-```yaml
-flow:
-  endpoint: /my-agent
-  entrypoint: my_agent.agent:entrypoint
-  locks:
-    - resource_name: "database_access"
-      max_concurrent: 1
-```
-
-### Custom Event Streaming
-
-Emit custom events during execution:
-
-```python
-from kodosumi import emit_event
-
-def entrypoint(input_data: dict) -> dict:
-    emit_event("Processing started")
-
-    result = process_data(input_data)
-    emit_event(f"Processed {len(result)} items")
-
-    emit_event("Finalizing output")
-    return {"result": result}
-```
-
-## Integration with Masumi
-
-### Payment-Enabled Flows
-
-Integrate with Masumi for automatic payment handling:
-
-```yaml
-name: my-paid-agent
-version: "1.0.0"
-
-masumi:
-  enabled: true
-  payment_service_url: https://your-masumi-node.com
-  api_key: ${MASUMI_API_KEY}
-  pricing:
-    price_per_request: 10  # USDM
-    currency: USDM
-
-flow:
-  endpoint: /my-paid-agent
-  entrypoint: my_agent.agent:entrypoint
-```
-
-**Kodosumi will automatically:**
-1. Verify payment before execution
-2. Track decision logging hashes
-3. Submit results to Masumi smart contract
-
-### Registry Integration
-
-Register your Kodosumi-deployed agent on Masumi registry:
+### Monitor
 
 ```bash
-# After deploying on Kodosumi
-masumi-cli register \
-  --name "My Agent" \
-  --description "AI agent deployed on Kodosumi" \
-  --api-endpoint "https://your-kodosumi.com/api/v1/flows/my-agent/invoke" \
-  --price 10
+curl -X GET "$KODOSUMI_URL/api/v1/flows/my-agent/jobs/job-123" \
+  -H "Authorization: Bearer $KODOSUMI_API_KEY" | jq
 ```
 
-## Documentation Resources
+Response includes `status` + `events[]` (timestamped lifecycle transitions).
 
-**Official Kodosumi Docs:**
-- Homepage: https://docs.kodosumi.io
-- [What is Kodosumi?](https://docs.kodosumi.io/guides/what-is-kodosumi.md)
-- [Installation Guide](https://docs.kodosumi.io/guides/installation.md)
-- [Deployment Guide](https://docs.kodosumi.io/guides/deploy.md)
-- [Flow Lifecycle](https://docs.kodosumi.io/guides/lifecycle.md)
-- [Configuration](https://docs.kodosumi.io/guides/config.md)
-- [Dashboard Usage](https://docs.kodosumi.io/guides/dashboard.md)
-- [File Upload](https://docs.kodosumi.io/guides/files.md)
-- [CLI Reference](https://docs.kodosumi.io/cli.md)
-- [API Reference](https://docs.kodosumi.io/api-reference.md)
-
-## Best Practices
-
-### Development Workflow
-1. ✅ Develop locally first, test thoroughly
-2. ✅ Use version control for your agent code
-3. ✅ Test with small datasets before scaling
-4. ✅ Monitor resource usage (CPU, memory, GPU)
-5. ✅ Implement proper error handling
-
-### Production Deployment
-1. ✅ Use environment variables for secrets (never hardcode)
-2. ✅ Set appropriate resource limits
-3. ✅ Configure auto-scaling based on load
-4. ✅ Enable logging and monitoring
-5. ✅ Have rollback strategy
-
-### Performance Optimization
-1. ✅ Batch processing when possible
-2. ✅ Cache frequently used data
-3. ✅ Use GPU workers for ML models
-4. ✅ Profile and optimize bottlenecks
-5. ✅ Consider async/parallel execution
-
-### Security
-1. ✅ Rotate API keys regularly
-2. ✅ Use HTTPS for all endpoints
-3. ✅ Validate all input data
-4. ✅ Implement rate limiting
-5. ✅ Audit access logs
-
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| Flow won't deploy | Check Python dependencies, verify entrypoint path |
-| Execution timeout | Increase timeout in config, optimize agent code |
-| Out of memory | Reduce batch size, increase worker memory |
-| Ray cluster not starting | Check Ray head address, verify network connectivity |
-| API authentication fails | Verify API key, check authorization header format |
-| Event stream not updating | Check WebSocket connection, refresh dashboard |
-
-## Support
-
-- **Documentation**: https://docs.kodosumi.io
-- **GitHub**: https://github.com/masumi-network/kodosumi
-- **Issues**: https://github.com/masumi-network/kodosumi/issues
-- **Email**: support@kodosumi.io
+Dashboard shows real-time updates + event stream + error logs.
 
 ---
 
-**Kodosumi powers the scalable execution layer of the Masumi ecosystem, enabling AI agents to serve users at any scale while maintaining reliability and performance.**
+## API Surface
+
+> Verify against your Kodosumi instance's `/docs` swagger before relying on the exact shape — these are from the published docs.
+
+| Method + Path | Purpose |
+|---|---|
+| `POST /api/v1/flows` | Deploy flow (multipart: name, code zip, config) |
+| `POST /api/v1/flows/{name}/invoke` | Invoke flow with input data |
+| `GET /api/v1/flows/{name}/jobs/{jobId}` | Job status + events |
+| `GET /api/v1/flows` | List all flows |
+| `DELETE /api/v1/flows/{name}` | Delete flow |
+
+Auth: `Authorization: Bearer $KODOSUMI_API_KEY`.
+
+### Invoke example
+```bash
+curl -X POST "$KODOSUMI_URL/api/v1/flows/my-agent/invoke" \
+  -H "Authorization: Bearer $KODOSUMI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"input_data":{"task":"summarize"}}'
+```
+
+---
+
+## Advanced Features
+
+### File upload + processing
+Flow accepts multipart `file` part; entrypoint receives a path/stream. Use for CSVs, PDFs, audio, etc.
+
+### Resource locks
+Mark entrypoint as exclusive on shared resource (GPU model, DB lock). Kodosumi serializes invocations holding that lock.
+
+### Custom event streaming
+Emit progress events from inside the entrypoint:
+```python
+from kodosumi import emit_event
+emit_event(stage="loading_model", percentage=10)
+emit_event(stage="inference", percentage=50)
+```
+Streamed via SSE on the job's events endpoint.
+
+---
+
+## Masumi Integration
+
+### Payment-enabled flows
+Declare in config so Kodosumi handles payment lifecycle:
+
+```yaml
+masumi:
+  enabled: true
+  payment_service_url: ${PAYMENT_SERVICE_URL}
+  pricing:
+    price_per_request: 10000000       # smallest unit (USDM)
+    currency: usdm
+```
+
+Kodosumi will:
+1. Receive invoke request.
+2. Create payment request via Payment Service `POST /payment`.
+3. Block flow execution until `FundsLocked`.
+4. Run flow.
+5. Auto-submit decision hash via `POST /payment/submit-result`.
+6. Return result + `blockchainIdentifier`.
+
+> Hash submission uses the verified body shape: `{network, blockchainIdentifier, submitResultHash}`. See [masumi-payments.md](masumi-payments.md).
+
+### Registry integration
+After deploy, register the Kodosumi endpoint URL as your agent's `apiBaseUrl` in `POST /registry` (Payment Service):
+
+```bash
+kodosumi flows list
+# → https://your-kodo.com/api/v1/flows/my-agent
+```
+
+Use that URL when calling Payment Service `POST /registry` (full body shape → [registry-identity.md](registry-identity.md)).
+
+---
+
+## Best Practices
+
+### Development
+- Test the entrypoint as a plain Python function first.
+- Local Ray (`ray start --head`) for end-to-end before deploying to remote cluster.
+- Pin dependencies in `kodosumi_config.yaml`.
+
+### Production
+- Separate Kodosumi instances for preprod + mainnet.
+- Set `resources.cpu / memory / gpu` honestly — Ray scheduler relies on it.
+- Monitor worker count vs queue depth; scale Ray workers when queued > 0 persistently.
+- PostgreSQL with backups + connection pooling.
+
+### Performance
+- Initialize heavy state (models, embeddings) **at module load** when worker boots, not inside `entrypoint()`.
+- Use Ray actors for stateful agents that need cached context across invocations.
+- Stream long outputs via `emit_event` instead of holding them in memory.
+
+### Security
+- `.env` keys only. Never bake API keys into the deployed code.
+- Restrict who can deploy: separate `deploy` permission from `invoke`.
+- HTTPS everywhere — Kodosumi endpoints must be HTTPS to be registered with Masumi.
+- Rotate `KODOSUMI_API_KEY` regularly.
+
+---
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| Flow stuck `QUEUED` | No idle worker; resource constraint not met | Scale Ray workers; lower flow's `resources.cpu` / `memory`. |
+| `ERROR` immediately | Import error in entrypoint module | `kodosumi flows logs <name>` — check stack trace. |
+| Slow first invocation | Worker booting + module import | Pre-warm: invoke a dummy at boot; or use Ray actor with init in `__init__`. |
+| Masumi payment never locks | Wrong `payment_service_url`, network mismatch | Verify `PAYMENT_SERVICE_URL` reachable; `network` matches buyer's network. |
+| Files not received | Wrong content-type, multipart field name | Use `multipart/form-data` with field name matching your entrypoint signature. |
+
+---
+
+## Resources
+
+- Repo: https://github.com/masumi-network/kodosumi
+- Docs: https://docs.kodosumi.io
+- Ray: https://docs.ray.io
+
+Next:
+- Marketplace listing → [sokosumi-marketplace.md](sokosumi-marketplace.md)
+- MIP-003 spec → [agentic-services.md](agentic-services.md)
+- Payment integration → [masumi-payments.md](masumi-payments.md)
+- Debug recipes → [api-debug-recipes.md](api-debug-recipes.md)
