@@ -83,7 +83,7 @@ When the skill helps an agent debug live APIs, it reads keys **only** from a loc
 
 ```bash
 cp .env.example .env       # fill in only the keys you actually need
-# .env is already gitignored
+# .env* is gitignored; .env.example stays tracked
 ```
 
 **Also available:** Entry point at https://masumi.network/skill.md

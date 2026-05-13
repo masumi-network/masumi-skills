@@ -42,6 +42,7 @@ mkdir -p "$TARGET_DIR"
 # Copy skill files
 echo "📦 Copying skill files..."
 cp -r "$SKILL_DIR"/* "$TARGET_DIR/"
+cp ".env.example" "$TARGET_DIR/.env.example"
 
 # Verify installation
 if [ -f "$TARGET_DIR/SKILL.md" ]; then
@@ -51,6 +52,7 @@ if [ -f "$TARGET_DIR/SKILL.md" ]; then
     echo ""
     echo "Available skill files:"
     echo "  • SKILL.md - Main entry point and quick start"
+    echo "  • .env.example - Safe environment template"
     echo "  • cardano-blockchain.md - Blockchain fundamentals"
     echo "  • masumi-payments.md - Payment integration"
     echo "  • sokosumi-marketplace.md - Marketplace listing"
