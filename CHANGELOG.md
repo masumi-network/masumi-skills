@@ -14,8 +14,8 @@ plus a new safety contract for how an agent uses the skill to debug.
     - Preprod: `https://api.preprod.sokosumi.com/v1` (NEW — was missing)
     - Mainnet: `https://api.sokosumi.com/v1` (was `https://sokosumi.com/api/v1`)
   - Pagination switched from `page+limit` → `cursor+limit` to match the live spec.
-  - `POST /agents/{id}/jobs` request body now uses the live `inputSchema.input_data`
-    array shape; the old flat `inputData` object documented in v2.0 no longer works.
+  - `POST /agents/{id}/jobs` request body now uses both `inputSchema.input_data`
+    and top-level `inputData`; flat-only `inputData` documented in v2.0 no longer works.
   - Job status enum expanded to the current 12 values; `awaiting_payment`/`pending`/
     `running`/`refunded` are out, `started`/`processing`/`input_required`/
     `result_pending`/`payment_pending`/etc. are in.
@@ -89,9 +89,9 @@ Closed remaining gaps from Pass 1:
 - `POST /registry` body: 10 required fields with case-sensitive names (`Tags`, `ExampleOutputs`,
   `Capability`, `AgentPricing`, `Author`, `Legal`; camelCase `sellingWalletVkey`,
   `apiBaseUrl`, `name`, `description`).
-- `POST /registry-entry-search/` body: `network`, optional `query` (fuzzy ≤120), `filter`
-  (`paymentTypes`, `status`, `policyId`, `assetIdentifier`, `tags`, `capability`), `limit`
-  (1-50, default 10), `cursorId` (NOT `cursor`).
+- `POST /registry-entry-search/` body: `network`, required `query` (fuzzy ≤120), optional
+  `filter` (`paymentTypes`, `status`, `policyId`, `assetIdentifier`, `tags`, `capability`),
+  `minHealthCheckDate`, `limit` (1-50, default 10), `cursorId` (NOT `cursor`).
 - Confirmed Payment + Registry Service auth scheme = `apiKey` header `token`.
 
 **Audited + caveman-rewrote v2.0 reference files** (was: untouched in pass 1):
