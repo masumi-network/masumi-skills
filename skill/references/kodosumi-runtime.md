@@ -99,7 +99,7 @@ DATABASE_URL=postgresql://user:pass@localhost:5432/kodosumi
 LOG_LEVEL=INFO
 ```
 
-> `KODOSUMI_API_KEY` is **not** in the skill's standard env-var set (see [api-debug-recipes.md](api-debug-recipes.md)). If you build automation against Kodosumi, add it to your `.env` and follow the same safe-handling rules.
+> Kodosumi automation uses `KODOSUMI_URL` + `KODOSUMI_API_KEY` from `.env`; see [api-debug-recipes.md](api-debug-recipes.md). Treat login username/password like secrets too.
 
 ---
 
@@ -185,11 +185,17 @@ START → QUEUED → RUNNING → FINISHED
 ### Monitor
 
 ```bash
-curl -X GET "$KODOSUMI_URL/api/v1/flows/my-agent/jobs/job-123" \
-  -H "Authorization: Bearer $KODOSUMI_API_KEY" | jq
+FID=682d86536dd659324a5c8901
+curl -sS "$KODOSUMI_URL/outputs/status/$FID?extended=true" \
+  -H "KODOSUMI_API_KEY: $KODOSUMI_API_KEY" | jq
 ```
 
-Response includes `status` + `events[]` (timestamped lifecycle transitions).
+Response includes `status`, `fid`, flow metadata, and `final` once finished. Event stream:
+
+```bash
+curl -sS -N "$KODOSUMI_URL/outputs/stream/$FID" \
+  -H "KODOSUMI_API_KEY: $KODOSUMI_API_KEY"
+```
 
 Dashboard shows real-time updates + event stream + error logs.
 
@@ -197,24 +203,48 @@ Dashboard shows real-time updates + event stream + error logs.
 
 ## API Surface
 
-> Verify against your Kodosumi instance's `/docs` swagger before relying on the exact shape — these are from the published docs.
+Official panel API shape from https://docs.kodosumi.io/api. Flow URLs are instance-specific; use `GET /flow` and copy the returned `url`.
 
 | Method + Path | Purpose |
 |---|---|
-| `POST /api/v1/flows` | Deploy flow (multipart: name, code zip, config) |
-| `POST /api/v1/flows/{name}/invoke` | Invoke flow with input data |
-| `GET /api/v1/flows/{name}/jobs/{jobId}` | Job status + events |
-| `GET /api/v1/flows` | List all flows |
-| `DELETE /api/v1/flows/{name}` | Delete flow |
+| `POST /api/login` | Login with JSON body; returns `KODOSUMI_API_KEY` + cookies |
+| `GET /flow` | List deployed flows; response items include launch `url` |
+| `GET /-/localhost/8001/hymn/-` | Retrieve input scheme (example flow path) |
+| `POST /-/localhost/8001/hymn/-/` | Launch flow (example flow path) |
+| `GET /outputs/status/{fid}` | Poll execution status |
+| `GET /outputs/status/{fid}?extended=true` | Harden first status poll after launch |
+| `GET /outputs/stream/{fid}` | Stream execution events |
+| `GET /outputs/raw/{fid}` / `GET /outputs/html/{fid}` | Retrieve raw / rendered output |
 
-Auth: `Authorization: Bearer $KODOSUMI_API_KEY`.
+Auth: `KODOSUMI_API_KEY: $KODOSUMI_API_KEY` header or login cookies. Not bearer auth.
+
+### Login
+```python
+import os, requests
+
+r = requests.post(
+    f"{os.environ['KODOSUMI_URL']}/api/login",
+    json={
+        "name": os.environ["KODOSUMI_USERNAME"],
+        "password": os.environ["KODOSUMI_PASSWORD"],
+    },
+    timeout=30,
+)
+r.raise_for_status()
+api_key = r.json()["KODOSUMI_API_KEY"]  # store in .env; don't print
+```
 
 ### Invoke example
 ```bash
-curl -X POST "$KODOSUMI_URL/api/v1/flows/my-agent/invoke" \
-  -H "Authorization: Bearer $KODOSUMI_API_KEY" \
+# List flows first; use item.url from response.
+curl -sS "$KODOSUMI_URL/flow" \
+  -H "KODOSUMI_API_KEY: $KODOSUMI_API_KEY" | jq '.items[] | {summary,url}'
+
+FLOW_URL="/-/localhost/8001/hymn/-/"
+curl -sS -X POST "$KODOSUMI_URL$FLOW_URL" \
+  -H "KODOSUMI_API_KEY: $KODOSUMI_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"input_data":{"task":"summarize"}}'
+  -d '{"topic":"Agentic payments"}' | jq
 ```
 
 ---
@@ -267,7 +297,7 @@ After deploy, register the Kodosumi endpoint URL as your agent's `apiBaseUrl` in
 
 ```bash
 kodosumi flows list
-# → https://your-kodo.com/api/v1/flows/my-agent
+# → https://your-kodo.com/-/localhost/8001/hymn/-/
 ```
 
 Use that URL when calling Payment Service `POST /registry` (full body shape → [registry-identity.md](registry-identity.md)).
