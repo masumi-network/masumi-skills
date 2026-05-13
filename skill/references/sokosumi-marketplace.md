@@ -126,14 +126,18 @@ Pagination = **cursor-based**: `?cursor=<previous nextCursor>&limit=<1-100>`. No
 ```json
 {
   "inputSchema":{"input_data":[
-    {"id":"topic","type":"string","name":"Topic","data":{"value":"..."}},
-    {"id":"depth","type":"option","name":"Depth","data":{"value":"deep"}}
+    {"id":"topic","type":"string","name":"Topic",
+     "data":{"placeholder":"e.g. AI agent payments","description":"What to research"}},
+    {"id":"depth","type":"option","name":"Depth",
+     "data":{"values":["quick","deep"]}}
   ]},
-  "name":"My run","projectId":"proj_abc",
-  "sharePublic":false,"shareOrganization":true,
-  "maxAcceptedCredits":150
+  "inputData":{"topic":"AI agent payments","depth":"deep"},
+  "maxCredits":150,
+  "name":"My run"
 }
 ```
+Both `inputSchema` and `inputData` are required. `inputSchema.input_data[].data` holds form metadata (placeholder, description, options) — NOT user value. Project assignment + sharing are separate calls — see `POST /projects/{id}/jobs`, `PUT /jobs/{id}/share`.
+
 Fetch real per-agent shape via `GET /agents/{id}/input-schema` first.
 
 **Job status enum**: `started`, `processing`, `input_required`, `result_pending`, `completed`, `failed`, `payment_pending`, `payment_failed`, `refund_pending`, `refund_resolved`, `dispute_pending`, `dispute_resolved`.
@@ -146,7 +150,7 @@ Terminal: `completed`, `failed`, `refund_resolved`, `dispute_resolved`. Job type
 ```
 1. Discover         GET /agents?category=data-analysis
 2. Inspect          GET /agents/{id}  +  GET /agents/{id}/input-schema
-3. Create job       POST /agents/{id}/jobs   { inputSchema.input_data: [...] }
+3. Create job       POST /agents/{id}/jobs   { inputSchema, inputData, maxCredits? }
                     → returns {data:{id, status:"started", credits, ...}}
 4. Payment           Simple: credits debited automatically
                     Advanced: Payment Service locks USDM → FundsLocked
@@ -184,9 +188,14 @@ async function run() {
   console.log('inputs:', schema.input_data.map((f: any) => f.id));
 
   // 3. Submit
-  const body = { inputSchema: { input_data: [
-    { id:'topic', type:'string', name:'Topic', data:{ value:'AI agent payments' } },
-  ]}};
+  const body = {
+    inputSchema: { input_data: [
+      { id:'topic', type:'string', name:'Topic',
+        data:{ placeholder:'e.g. AI agent payments', description:'What to research' } },
+    ]},
+    inputData: { topic:'AI agent payments' },
+    maxCredits:150,
+  };
   const job = (await c.post(`/agents/${agent.id}/jobs`, body)).data.data;
   console.log('job:', job.id);
 
@@ -276,7 +285,7 @@ async function withBackoff<T>(fn: () => Promise<T>, max=3): Promise<T> {
 - Read reviews + `ExampleOutputs` before hiring.
 - Validate input against schema (AJV).
 - Poll `/jobs/{id}` max every 10s (not faster).
-- Set `maxAcceptedCredits` cap.
+- Set `maxCredits` cap.
 - Cache results.
 
 ### Security
@@ -350,7 +359,7 @@ masumi:
 ```
 ```bash
 kodosumi deploy my_agent/
-kodosumi flows list                       # → https://your-kodo.com/api/v1/flows/data-analyzer
+kodosumi flows list                       # → https://your-kodo.com/-/localhost/8001/data-analyzer/-/
 ```
 Use that URL as `apiBaseUrl` in `POST /registry` (Masumi) + as endpoint in Sokosumi listing.
 

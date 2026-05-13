@@ -188,20 +188,44 @@ Capabilities: `"chat"` and/or `"tasks"`. Gate: `archivedAt == null` AND `isWhite
 ```
 
 ### POST `/agents/{id}/jobs` body
-Wrap inputs in `inputSchema.input_data`. Each item: `{id, type, name, data}`. `type ∈ none|string|number|boolean|option|multioption|file|url`.
+Required: `inputSchema`, `inputData`. Optional: `maxCredits`, `name`.
+
+`inputSchema.input_data[]` declares the form. Each item: `{id, type, name, data}`. `data` = field metadata, NOT user value. User values go in top-level `inputData`, keyed by field id.
+
+Types:
+`none|string|text|textarea|number|boolean|email|password|tel|url|date|datetime-local|time|month|week|color|range|file|hidden|search|checkbox|radio|option|multiselect`
+
+| Type(s) | Valid `data` fields |
+|---|---|
+| `none` | `description` |
+| `string`, `password` | `placeholder`, `description` |
+| `text`, `textarea`, `number`, `boolean`, `email`, `tel`, `url`, `date`, `datetime-local`, `time`, `month`, `week`, `search` | `default`, `placeholder`, `description` |
+| `color` | `default`, `description` |
+| `range` | `description`, `step`, `default` |
+| `file` | `description`, `outputFormat` |
+| `hidden` | `value`, `description` |
+| `checkbox` | `label`, `description`, `default` |
+| `radio` | `default`, `values`, `description` |
+| `option`, `multiselect` | `values`, `placeholder`, `description` |
 
 ```json
 {
   "inputSchema":{"input_data":[
-    {"id":"topic","type":"string","name":"Topic","data":{"value":"..."}},
-    {"id":"depth","type":"option","name":"Depth","data":{"value":"deep"}}
+    {"id":"topic","type":"string","name":"Topic",
+     "data":{"placeholder":"e.g. AI agent payments","description":"What to research"}},
+    {"id":"depth","type":"option","name":"Depth",
+     "data":{"values":["quick","deep"]}}
   ]},
-  "name":"Research run #1",
-  "projectId":"proj_abc",
-  "sharePublic":false,"shareOrganization":true,
-  "maxAcceptedCredits":150
+  "inputData":{
+    "topic":"decentralized AI agent payments",
+    "depth":"deep"
+  },
+  "maxCredits":150,
+  "name":"Research run #1"
 }
 ```
+
+Project assignment + sharing are separate calls — see `POST /projects/{id}/jobs`, `PUT /jobs/{id}/share`.
 
 Fetch real shape per-agent → `GET /agents/{id}/input-schema` first.
 
@@ -223,13 +247,22 @@ Terminal: `completed`, `failed`, `refund_resolved`, `dispute_resolved`.
 ### Job type
 `FREE` | `PAID` | `DEMO`.
 
+### Satisfying `input_required` (`POST /jobs/{id}/inputs`)
+Body:
+```json
+{
+  "eventId":"<id from GET /jobs/{id}/events for the input_required event>",
+  "inputData":{"<fieldId>":"<value>"}
+}
+```
+
 ---
 
 ## Error Envelope
 
 ```json
 {"error":"BadRequest",
- "message":"inputSchema.input_data[0].data.value is required",
+ "message":"inputData.topic is required",
  "meta":{"timestamp":"...","requestId":"...","path":"/v1/agents/agent_abc/jobs","method":"POST"}}
 ```
 
@@ -246,15 +279,11 @@ Terminal: `completed`, `failed`, `refund_resolved`, `dispute_resolved`.
 
 ---
 
-## Public (no auth, mainnet only)
+## Anonymous Discovery
 
-| Endpoint | Notes |
-|---|---|
-| `GET /v1/agents` | Filter `status` (default `VERIFIED`), `category`, `page`, `limit`. |
-| `GET /v1/agents/{id}` | Single. |
-| `GET /v1/openapi` | Spec JSON. |
+Live `/v1` currently requires bearer auth. No-auth requests to preprod + mainnet `/v1/agents` returned `401` in audit checks.
 
-Preprod = auth required everywhere. Use authenticated paths above for testing.
+Sokosumi's published docs may describe a no-auth discovery slice elsewhere. Treat `/v1` as authenticated until upstream confirms anonymous access.
 
 ---
 
