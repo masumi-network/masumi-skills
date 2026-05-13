@@ -191,19 +191,21 @@ For **registry search/discovery** (separate service): [masumi-registry-api.md](m
   "network":"Preprod",                  // required
   "agentIdentifier":"<min 57 chars>",   // required
   "inputHash":"<sha256 hex>",           // required
-  "RequestedFunds":[                    // null for fixed, array for dynamic
+  "RequestedFunds":[                    // optional; null for fixed, array for dynamic
     {"unit":"","amount":"10000000"}     // unit="" = ADA/lovelace
   ],
-  "payByTime":"<ISO date-time>",        // when payment must hit contract
-  "submitResultTime":"<ISO date-time>", // when seller must submit hash
-  "identifierFromPurchaser":"buyer-id"
+  "payByTime":"<ISO date-time>",        // optional; when payment must hit contract
+  "submitResultTime":"<ISO date-time>", // optional; when seller must submit hash
+  "identifierFromPurchaser":"buyer-id"  // required
 }
 ```
 `unit:""` = ADA/lovelace. For USDM: full policyId+assetName concatenated.
 
 ### `GET /payment` — check status
-Query: `network` (req), one of `blockchainIdentifier | paymentSourceId | state`, plus `cursor | limit`.
-On-chain state values: `null` (pending), `FundsLocked`, `ResultSubmitted`, `Completed`, `FundsOrDatumInvalid`, `RefundRequested`.
+Query: `network` (req), optional `filterSmartContractAddress`, `filterOnChainState`, `searchQuery`, `includeHistory`, plus `cursorId | limit` (1..100).
+On-chain state filter values: `FundsLocked`, `FundsOrDatumInvalid`, `ResultSubmitted`, `RefundRequested`, `Disputed`, `Withdrawn`, `RefundWithdrawn`, `DisputedWithdrawn`.
+
+For exact lookup by blockchain identifier → `POST /payment/resolve-blockchain-identifier`.
 
 ### `POST /payment/submit-result` — seller submits decision hash
 ```json
