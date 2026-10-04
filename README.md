@@ -10,7 +10,10 @@ Expert guidance for building AI agents with payments, identity, marketplace inte
 ### Via skills.sh
 ```bash
 npx skills add https://github.com/masumi-network/masumi-skills --skill masumi
+npx skills add https://github.com/masumi-network/masumi-skills --skill masumi-x402-register
 ```
+
+`masumi` is the ecosystem guide (payments, registry, Sokosumi, Kodosumi). `masumi-x402-register` is the SaaS-API-only flow to list an HTTP x402 resource as a Masumi `X402` agent.
 
 ### Manual
 ```bash
@@ -61,6 +64,9 @@ The skill uses **progressive disclosure** - load only what you need:
 ```
 masumi-skills/
 ├── .env.example                              # Variable template (copy to .env)
+├── masumi-x402-register/
+│   ├── SKILL.md                              # SaaS API x402 HTTP registration
+│   └── reference.md                          # Request/response fields, batch, curl
 ├── skill/
 │   ├── SKILL.md                              # Main skill guide
 │   └── references/

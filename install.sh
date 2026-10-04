@@ -44,6 +44,14 @@ echo "📦 Copying skill files..."
 cp -r "$SKILL_DIR"/* "$TARGET_DIR/"
 cp ".env.example" "$TARGET_DIR/.env.example"
 
+X402_DIR="masumi-x402-register"
+if [ -d "$X402_DIR" ]; then
+    X402_TARGET="$INSTALL_TARGET/$X402_DIR"
+    mkdir -p "$X402_TARGET"
+    cp -r "$X402_DIR"/* "$X402_TARGET/"
+    echo "📦 Also installed $X402_DIR to: $X402_TARGET"
+fi
+
 # Verify installation
 if [ -f "$TARGET_DIR/SKILL.md" ]; then
     echo "✅ Installation successful!"

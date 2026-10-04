@@ -1,5 +1,9 @@
 # Changelog — Masumi Skills
 
+## Unreleased
+
+- **masumi-x402-register** (new skill): register an HTTP x402 resource on Masumi SaaS via `POST /api/agents` (`registrationKind: X402_HTTP`) and `complete-registration`. Install: `npx skills add https://github.com/masumi-network/masumi-skills --skill masumi-x402-register`.
+
 ## Version 2.1 — Live API Refresh + Safe-Key Handling (2026-05-13)
 
 This is a substantial refresh aligning the skill with the **current** live API
